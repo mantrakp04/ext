@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { settingsAtom, type Settings as SettingsType, searchEngines, defaultSettings, stockBackgroundImages } from '../store/settings';
 import { useTheme } from '@/components/theme-provider';
+import { WidgetManager } from './WidgetManager';
 
 interface SettingsDialogProps {
   children?: React.ReactNode;
@@ -126,44 +127,19 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
             <label className="text-sm font-medium">Display Options</label>
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Show date & time</span>
-                <Switch
-                  checked={settings.showDateTime}
-                  onCheckedChange={(checked: boolean) => updateSetting('showDateTime', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-sm">Show quick links</span>
                 <Switch
                   checked={settings.showQuickLinks}
                   onCheckedChange={(checked: boolean) => updateSetting('showQuickLinks', checked)}
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Show notes</span>
-                <Switch
-                  checked={settings.showNotes}
-                  onCheckedChange={(checked: boolean) => updateSetting('showNotes', checked)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Show weather</span>
-                <Switch
-                  checked={settings.showWeather}
-                  onCheckedChange={(checked: boolean) => updateSetting('showWeather', checked)}
-                />
-              </div>
             </div>
           </div>
 
-          {/* Weather Location */}
+          {/* Widget Management */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Weather Location</label>
-            <Input
-              placeholder="Enter city name (e.g., London, New York)"
-              value={settings.weatherLocation}
-              onChange={(e) => updateSetting('weatherLocation', e.target.value)}
-            />
+            <label className="text-sm font-medium">Widgets</label>
+            <WidgetManager />
           </div>
 
           {/* Background Image */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ExternalLink, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { OpenRouterOAuthService } from '@/lib/openrouter-oauth';
+import { OpenRouterOAuthService } from '@/lib/openrouter/oauth';
 
 interface OAuthAuthProps {
   onAuthComplete: (apiKey: string) => void;
@@ -162,15 +162,6 @@ export function OAuthAuth({ onAuthComplete, onAuthError }: OAuthAuthProps) {
                 Try Again
               </button>
               
-              <button
-                onClick={() => {
-                  // Fallback to manual API key entry
-                  onAuthError('manual_fallback');
-                }}
-                className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors text-sm"
-              >
-                Enter API Key Manually
-              </button>
             </div>
           </div>
         )}

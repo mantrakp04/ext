@@ -1,4 +1,5 @@
 import { atomWithStorage } from 'jotai/utils';
+import { Widget } from '../components/Widgets';
 
 export interface QuickLink {
   id: string;
@@ -9,12 +10,8 @@ export interface QuickLink {
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
   searchEngine: 'unduck' | 'google' | 'bing' | 'duckduckgo';
-  showDateTime: boolean;
   showQuickLinks: boolean;
-  showNotes: boolean;
-  showWeather: boolean;
-  weatherLocation: string;
-  notes: string;
+  widgets: Widget[];
   quickLinks: QuickLink[];
   backgroundImage: string;
 }
@@ -38,12 +35,37 @@ const defaultQuickLinks: QuickLink[] = [
 export const defaultSettings: Settings = {
   theme: 'system',
   searchEngine: 'unduck',
-  showDateTime: true,
   showQuickLinks: true,
-  showNotes: true,
-  showWeather: true,
-  weatherLocation: 'Vancouver',
-  notes: '',
+  widgets: [
+    {
+      id: 'time-1',
+      type: 'time',
+      size: 'square',
+      config: {},
+      isVisible: () => true,
+    },
+    {
+      id: 'notes-1',
+      type: 'notes',
+      size: 'rectangle',
+      config: { notes: '' },
+      isVisible: () => true,
+    },
+    {
+      id: 'weather-vancouver',
+      type: 'weather',
+      size: 'square',
+      config: { location: 'Vancouver' },
+      isVisible: () => true,
+    },
+    {
+      id: 'notes-2',
+      type: 'notes',
+      size: 'rectangle',
+      config: { notes: 'This is a second notes widget!' },
+      isVisible: () => true,
+    },
+  ],
   quickLinks: defaultQuickLinks,
   backgroundImage: '',
 };

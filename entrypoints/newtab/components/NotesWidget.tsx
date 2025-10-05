@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAtom } from 'jotai';
 import { Edit3 } from 'lucide-react';
-import { settingsAtom } from '../store/settings';
+import { settingsAtom, defaultSettings } from '../store/settings';
 
-export function NotesWidget() {
+export function NotesWidget({ id, notes }: { id: string, notes: string }) {
   const [settings, setSettings] = useAtom(settingsAtom);
   const [isEditing, setIsEditing] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,17 @@ export function NotesWidget() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSettings(prev => ({ ...prev, notes: e.target.value }));
+    setSettings(prev => {
+      const currentSettings = typeof prev === 'object' && 'widgets' in prev ? prev : defaultSettings;
+      return {
+        ...currentSettings,
+        widgets: (currentSettings.widgets || []).map((widget) =>
+          widget.id === id
+            ? { ...widget, config: { ...widget.config, notes: e.target.value } }
+            : widget
+        )
+      };
+    });
   };
 
   const handleCardClick = () => {
@@ -54,7 +64,7 @@ export function NotesWidget() {
       <div className="flex-1 flex flex-col min-h-0">
         {isEditing ? (
           <textarea
-            value={settings.notes || ''}
+            value={notes}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onBlur={stopEditing}
@@ -65,9 +75,9 @@ export function NotesWidget() {
           />
         ) : (
           <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
-            {settings.notes ? (
+            {notes ? (
               <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                {settings.notes}
+                {notes}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">Click to add notes...</p>

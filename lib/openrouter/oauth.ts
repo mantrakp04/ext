@@ -13,7 +13,7 @@ export interface OAuthState {
 
 export class OpenRouterOAuthService {
   private static readonly STORAGE_KEY = 'openrouter_oauth_state';
-  private static readonly CALLBACK_URL = 'http://localhost:4567/auth/callback';
+  private static readonly CALLBACK_URL = 'http://localhost:3000/auth/callback';
 
   static async startOAuthFlow(): Promise<void> {
     try {

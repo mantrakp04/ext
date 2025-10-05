@@ -3,11 +3,9 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { Widgets } from './components/Widgets';
 import { SearchBar } from './components/SearchBar';
 import { QuickLinks } from './components/QuickLinks';
-import { useWidgetRegistry } from './components/widgetRegistry';
 import { QueryProvider } from '../../components/QueryProvider';
 
 function NewTabApp() {
-  const widgets = useWidgetRegistry();
 
   return (
     <BackgroundWrapper>
@@ -21,7 +19,7 @@ function NewTabApp() {
       <div className="h-full rounded-lg bg-background/97">
         <div className="flex flex-col h-full items-center justify-center gap-2 max-w-2xl mx-auto">
           <SearchBar />
-          <Widgets widgets={widgets} />
+          <Widgets />
           <QuickLinks />
         </div>
       </div>

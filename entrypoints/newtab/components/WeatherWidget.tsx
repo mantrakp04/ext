@@ -1,9 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useAtom } from "jotai"
 import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets } from "lucide-react"
-import { settingsAtom } from "../store/settings"
 
 interface WeatherData {
   temperature: number
@@ -59,13 +57,14 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
   }
 }
 
-export function WeatherWidgetSquare() {
-  const [settings] = useAtom(settingsAtom)
-
+export function WeatherWidgetSquare({ location }: {
+  location: string;
+}) {
+  
   const { data: weather, isLoading, error } = useQuery({
-    queryKey: ['weather', settings.weatherLocation],
-    queryFn: () => fetchWeatherData(settings.weatherLocation!),
-    enabled: settings.showWeather && !!settings.weatherLocation,
+    queryKey: ['weather', location],
+    queryFn: () => fetchWeatherData(location),
+    enabled: !!location,
     staleTime: 1000 * 60 * 10, // 10 minutes
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
     refetchInterval: 1000 * 60 * 10, // Refetch every 10 minutes
@@ -98,31 +97,31 @@ export function WeatherWidgetSquare() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 shadow-sm h-full w-full flex flex-col">
+    <div className="bg-card border border-border rounded-xl p-3 shadow-sm h-full w-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-muted-foreground font-mono">{weather.location}</span>
-        <span className="text-xs text-muted-foreground font-mono capitalize">{weather.description}</span>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-muted-foreground font-mono truncate">{weather.location}</span>
+        <span className="text-xs text-muted-foreground font-mono capitalize truncate ml-1">{weather.description}</span>
       </div>
 
       {/* Main weather display - centered for square layout */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-3">
+      <div className="flex-1 flex flex-col items-center justify-center space-y-2 min-h-0">
         {/* Weather icon and temperature */}
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="flex items-center justify-center gap-2 mb-1">
             {getWeatherIcon(weather.icon)}
-            <div className="text-3xl font-light tracking-tight text-foreground">{weather.temperature}°</div>
+            <div className="text-2xl font-light tracking-tight text-foreground">{weather.temperature}°</div>
           </div>
         </div>
 
         {/* Weather details - compact grid */}
-        <div className="grid grid-cols-2 gap-3 w-full">
-          <div className="flex flex-col items-center gap-1">
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <div className="flex flex-col items-center gap-0.5">
             <Wind className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
             <p className="text-xs text-muted-foreground">Wind</p>
             <p className="text-xs font-medium text-foreground">{weather.windSpeed} km/h</p>
           </div>
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-0.5">
             <Droplets className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
             <p className="text-xs text-muted-foreground">Humidity</p>
             <p className="text-xs font-medium text-foreground">{weather.humidity}%</p>
