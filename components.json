@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "entrypoints/newtab/style.css",
+    "css": "entrypoints/style.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""

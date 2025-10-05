@@ -3,9 +3,7 @@ import { Search, Plus, X, Edit2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ModeToggle } from '@/components/mode-toggle';
-import { ThemeProvider } from '@/components/theme-provider';
-import { cn } from '@/lib/utils';
+import { ModeToggle, ThemeProvider } from '@/components/theme-provider';
 
 interface QuickLink {
   id: string;
@@ -14,11 +12,21 @@ interface QuickLink {
   icon?: string;
 }
 
+// Utility function to get favicon URL from Google's service
+const getFaviconUrl = (url: string): string => {
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  } catch {
+    return '';
+  }
+};
+
 const defaultLinks: QuickLink[] = [
-  { id: '1', name: 'Gmail', url: 'https://mail.google.com', icon: '📧' },
-  { id: '2', name: 'GitHub', url: 'https://github.com', icon: '🐙' },
-  { id: '3', name: 'YouTube', url: 'https://youtube.com', icon: '📺' },
-  { id: '4', name: 'Twitter', url: 'https://twitter.com', icon: '🐦' },
+  { id: '1', name: 'Gmail', url: 'https://mail.google.com' },
+  { id: '2', name: 'GitHub', url: 'https://github.com' },
+  { id: '3', name: 'YouTube', url: 'https://youtube.com' },
+  { id: '4', name: 'Twitter', url: 'https://twitter.com' },
 ];
 
 function NewTabApp() {
@@ -37,7 +45,18 @@ function NewTabApp() {
     const savedLinks = localStorage.getItem('quickLinks');
 
     if (savedName) setUserName(savedName);
-    if (savedLinks) setLinks(JSON.parse(savedLinks));
+    if (savedLinks) {
+      const parsedLinks = JSON.parse(savedLinks);
+      setLinks(parsedLinks);
+    } else {
+      // Initialize default links with favicons
+      const initializedLinks = defaultLinks.map(link => ({
+        ...link,
+        icon: getFaviconUrl(link.url)
+      }));
+      setLinks(initializedLinks);
+      localStorage.setItem('quickLinks', JSON.stringify(initializedLinks));
+    }
 
     // Update time every second
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -69,9 +88,14 @@ function NewTabApp() {
 
   const addLink = () => {
     if (newLink.name && newLink.url) {
+      // Auto-fetch favicon if no custom icon provided
+      const icon = newLink.icon === '🔗' ? getFaviconUrl(newLink.url) : newLink.icon;
+      
       const link: QuickLink = {
         id: Date.now().toString(),
-        ...newLink,
+        name: newLink.name,
+        url: newLink.url,
+        icon: icon
       };
       const updatedLinks = [...links, link];
       setLinks(updatedLinks);
@@ -88,7 +112,7 @@ function NewTabApp() {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-background via-background to-secondary/20">
+    <div className="relative h-screen w-screen overflow-hidden">
       {/* Theme Toggle */}
       <div className="absolute top-6 right-6 z-10">
         <ModeToggle />
@@ -97,8 +121,8 @@ function NewTabApp() {
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center h-full px-8">
         {/* Time Display */}
-        <div className="text-center mb-8 animate-in fade-in duration-500">
-          <h1 className="text-8xl font-light mb-2 tracking-tight">
+        <div className="text-center mb-8">
+          <h1 className="text-8xl font-light mb-2">
             {time.toLocaleTimeString('en-US', {
               hour: '2-digit',
               minute: '2-digit',
@@ -116,7 +140,7 @@ function NewTabApp() {
         </div>
 
         {/* Greeting */}
-        <div className="mb-12 text-center animate-in fade-in duration-700 delay-100">
+        <div className="mb-12 text-center">
           {!isEditingName ? (
             <h2 className="text-3xl font-light text-muted-foreground group flex items-center gap-2">
               {getGreeting()}
@@ -158,7 +182,7 @@ function NewTabApp() {
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="w-full max-w-2xl mb-12 animate-in fade-in duration-700 delay-200">
+        <form onSubmit={handleSearch} className="w-full max-w-2xl mb-12">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -166,23 +190,23 @@ function NewTabApp() {
               placeholder="Search the web or enter a URL..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-14 text-lg bg-card/50 backdrop-blur-sm border-border/50 focus:bg-card transition-colors"
+              className="pl-12 h-14 text-lg"
             />
           </div>
         </form>
 
         {/* Quick Links */}
-        <div className="animate-in fade-in duration-700 delay-300">
+        <div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             {links.map((link) => (
               <Card
                 key={link.id}
-                className="group relative hover:bg-accent/50 transition-all cursor-pointer bg-card/30 backdrop-blur-sm border-border/50 hover:scale-105"
+                className="group relative hover:bg-accent/50 transition-all cursor-pointer hover:scale-105"
               >
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onClick={() => removeLink(link.id)}
                 >
                   <X className="h-3 w-3" />
@@ -191,7 +215,20 @@ function NewTabApp() {
                   href={link.url}
                   className="flex flex-col items-center justify-center p-6 gap-2"
                 >
-                  <span className="text-3xl">{link.icon}</span>
+                  {link.icon?.startsWith('http') ? (
+                    <img 
+                      src={link.icon} 
+                      alt="" 
+                      className="w-8 h-8 rounded"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : (
+                    <span className="text-3xl">{link.icon || '🔗'}</span>
+                  )}
+                  <span className="fallback-icon hidden text-3xl">🔗</span>
                   <span className="text-sm font-medium">{link.name}</span>
                 </a>
               </Card>
@@ -200,7 +237,7 @@ function NewTabApp() {
             {/* Add Link Card */}
             {!isAddingLink ? (
               <Card
-                className="hover:bg-accent/50 transition-all cursor-pointer bg-card/30 backdrop-blur-sm border-border/50 border-dashed hover:scale-105"
+                className="hover:bg-accent/50 transition-all cursor-pointer border-dashed hover:scale-105"
                 onClick={() => setIsAddingLink(true)}
               >
                 <div className="flex flex-col items-center justify-center p-6 gap-2">
@@ -211,14 +248,8 @@ function NewTabApp() {
                 </div>
               </Card>
             ) : (
-              <Card className="bg-card/50 backdrop-blur-sm border-border p-4">
+              <Card className="p-4">
                 <div className="flex flex-col gap-2">
-                  <Input
-                    placeholder="Icon (emoji)"
-                    value={newLink.icon}
-                    onChange={(e) => setNewLink({ ...newLink, icon: e.target.value })}
-                    className="h-8 text-sm"
-                  />
                   <Input
                     placeholder="Name"
                     value={newLink.name}
@@ -259,11 +290,10 @@ function NewTabApp() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="newtab-theme">
+    <ThemeProvider>
       <NewTabApp />
     </ThemeProvider>
   );
 }
 
 export default App;
-
