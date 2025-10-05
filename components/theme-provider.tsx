@@ -3,6 +3,7 @@ import { useAtom } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { settingsAtom } from "@/entrypoints/newtab/store/settings"
 
 type Theme = "dark" | "light" | "system"
 
@@ -36,6 +37,7 @@ export function ModeToggle() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme] = useAtom(themeAtom)
+  const [settings] = useAtom(settingsAtom)
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -55,5 +57,49 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.add(theme)
   }, [theme])
 
+  useEffect(() => {
+    const body = window.document.body
+    
+    if (settings.backgroundImage) {
+      body.style.backgroundImage = `url(${settings.backgroundImage})`
+      body.style.backgroundSize = 'cover'
+      body.style.backgroundPosition = 'center'
+      body.style.backgroundRepeat = 'no-repeat'
+      body.style.backgroundAttachment = 'fixed'
+    } else {
+      body.style.backgroundImage = ''
+      body.style.backgroundSize = ''
+      body.style.backgroundPosition = ''
+      body.style.backgroundRepeat = ''
+      body.style.backgroundAttachment = ''
+    }
+  }, [settings.backgroundImage])
+
   return <>{children}</>
+}
+
+export function BackgroundWrapper({ children }: { children: React.ReactNode }) {
+  const [settings] = useAtom(settingsAtom)
+
+  const backgroundStyle = settings.backgroundImage 
+    ? {
+        backgroundImage: `url(${settings.backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {};
+
+  return (
+    <div 
+      className="h-screen w-full bg-background p-2"
+      style={backgroundStyle}
+    >
+      {/* Semi-transparent overlay for better text readability */}
+      {settings.backgroundImage && (
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+      )}
+      {children}
+    </div>
+  )
 }

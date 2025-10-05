@@ -6,6 +6,7 @@ export interface Widget {
   id: string;
   type: WidgetType;
   component: ReactNode;
+  isVisible: () => boolean;
 }
 
 interface WidgetsProps {
@@ -13,9 +14,11 @@ interface WidgetsProps {
 }
 
 export function Widgets({ widgets }: WidgetsProps) {
+  const visibleWidgets = widgets.filter(widget => widget.isVisible());
+  
   return (
     <div className="grid grid-cols-4 gap-2 max-w-2xl mx-auto">
-      {widgets.map((widget) => (
+      {visibleWidgets.map((widget) => (
         <div
           key={widget.id}
           className={`
