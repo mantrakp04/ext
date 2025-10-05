@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useAtom } from 'jotai';
 import { X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { settingsAtom } from '../store/settings';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { settingsAtom, getFaviconUrl } from '../store/settings';
 import { AddLinkForm } from './AddLinkForm';
 
 export function QuickLinks() {
   const [settings, setSettings] = useAtom(settingsAtom);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [open, setOpen] = useState(false);
 
 if (!settings.showQuickLinks) return null;
 
@@ -27,7 +28,7 @@ if (!settings.showQuickLinks) return null;
             onClick={() => window.open(link.url, '_blank')}
           >
             <div className='flex items-center gap-2 min-w-0 flex-1'>
-              <img src={link.icon} alt={link.name} className="w-6 h-6 rounded-sm flex-shrink-0" />
+              <img src={getFaviconUrl(link.url)} alt={link.name} className="w-6 h-6 rounded-sm flex-shrink-0" />
               <span className="truncate">{link.name}</span>
             </div>
             <Button
@@ -44,20 +45,20 @@ if (!settings.showQuickLinks) return null;
           </Button>
         ))}
         
-        {showAddForm ? (
-          <AddLinkForm 
-            onCancel={() => setShowAddForm(false)}
-          />
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="justify-center px-1 border-dashed"
-            onClick={() => setShowAddForm(true)}
-          >
-            <Plus className="size-4" />
-          </Button>
-        )}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="justify-center px-1 border-dashed"
+            >
+              <Plus className="size-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="start">
+            <AddLinkForm onCancel={() => setOpen(false)} />
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ export interface QuickLink {
   id: string;
   name: string;
   url: string;
-  icon?: string;
 }
 
 export interface Settings {
@@ -34,10 +33,7 @@ const defaultQuickLinks: QuickLink[] = [
   { id: '2', name: 'GitHub', url: 'https://github.com' },
   { id: '3', name: 'YouTube', url: 'https://youtube.com' },
   { id: '4', name: 'Twitter', url: 'https://twitter.com' },
-].map(link => ({
-  icon: getFaviconUrl(link.url),
-  ...link
-}));
+];
 
 export const defaultSettings: Settings = {
   theme: 'system',

@@ -4,6 +4,7 @@ import { Widgets } from './components/Widgets';
 import { SearchBar } from './components/SearchBar';
 import { QuickLinks } from './components/QuickLinks';
 import { useWidgetRegistry } from './components/widgetRegistry';
+import { QueryProvider } from './providers/QueryProvider';
 
 function NewTabApp() {
   const widgets = useWidgetRegistry();
@@ -30,9 +31,11 @@ function NewTabApp() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <NewTabApp />
-    </ThemeProvider>
+    <QueryProvider>
+      <ThemeProvider>
+        <NewTabApp />
+      </ThemeProvider>
+    </QueryProvider>
   );
 }
 

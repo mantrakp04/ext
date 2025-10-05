@@ -2,7 +2,7 @@ import { useAtom } from 'jotai';
 import { settingsAtom } from '../store/settings';
 import { TimeWidget } from './TimeWidget';
 import { NotesWidget } from './NotesWidget';
-import { WeatherWidgetSquare } from './WeatherWidgetSquare';
+import { WeatherWidgetSquare } from './WeatherWidget';
 import { Widget } from './Widgets';
 
 export function useWidgetRegistry(): Widget[] {
