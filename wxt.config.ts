@@ -10,5 +10,11 @@ export default defineConfig({
       48: '/icon/favicon.ico',
       128: '/icon/favicon.ico',
     },
+    permissions: [
+      'storage',
+      'sidePanel',
+      'activeTab',
+      'tabs',
+    ],
   },
 });

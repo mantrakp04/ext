@@ -1,31 +1,22 @@
-import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const openSidepanel = () => {
+    browser.sidePanel.open({ windowId: browser.windows.WINDOW_ID_CURRENT });
+    window.close(); // Close the popup after opening sidepanel
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src="/icon/favicon.ico" className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src="/icon/favicon.ico" className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the WXT and React logos to learn more
-      </p>
-    </>
+    <div className="w-80 h-48 flex items-center justify-center bg-background">
+      <button
+        onClick={openSidepanel}
+        className="flex flex-col items-center gap-3 p-6 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        <Sparkles className="w-8 h-8" />
+        <span className="text-lg font-semibold">Open AI Assistant</span>
+        <span className="text-sm opacity-80">Click to open sidepanel</span>
+      </button>
+    </div>
   );
 }
 
