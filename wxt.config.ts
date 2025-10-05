@@ -16,5 +16,9 @@ export default defineConfig({
       'activeTab',
       'tabs',
     ],
+    host_permissions: [
+      'https://openrouter.ai/*',
+      'http://localhost:3000/*',
+    ],
   },
 });

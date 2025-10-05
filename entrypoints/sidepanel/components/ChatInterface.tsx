@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { ChatMessage } from './ChatMessage.jsx';
+import { OAuthAuth } from './OAuthAuth';
 import { nanoid } from 'nanoid';
 import type { UIMessage } from 'ai';
 
 export function ChatInterface() {
   const [apiKey, setApiKey] = useState<string>('');
   const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'oauth' | 'manual' | null>(null);
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,10 +18,14 @@ export function ChatInterface() {
   
   // Load API key and messages on mount
   useEffect(() => {
-    browser.storage.local.get(['openai_api_key', 'chat_messages']).then((result) => {
-      if (result.openai_api_key) {
-        setApiKey(result.openai_api_key);
+    browser.storage.local.get(['openrouter_api_key', 'openai_api_key', 'chat_messages']).then((result) => {
+      // Check for OpenRouter API key first, then fallback to OpenAI
+      const storedApiKey = result.openrouter_api_key || result.openai_api_key;
+      if (storedApiKey) {
+        setApiKey(storedApiKey);
         setHasApiKey(true);
+      } else {
+        setAuthMode('oauth');
       }
       if (result.chat_messages && Array.isArray(result.chat_messages)) {
         setMessages(result.chat_messages);
@@ -35,12 +41,32 @@ export function ChatInterface() {
     scrollToBottom();
   }, [messages]);
 
-  const handleApiKeySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (apiKey.trim()) {
-      browser.storage.local.set({ openai_api_key: apiKey });
+  const handleApiKeySubmit = (submittedApiKey: string) => {
+    if (submittedApiKey.trim()) {
+      browser.storage.local.set({ openrouter_api_key: submittedApiKey });
+      setApiKey(submittedApiKey);
       setHasApiKey(true);
+      setAuthMode(null);
     }
+  };
+
+  const handleOAuthComplete = (oauthApiKey: string) => {
+    setApiKey(oauthApiKey);
+    setHasApiKey(true);
+    setAuthMode(null);
+  };
+
+  const handleOAuthError = (error: string) => {
+    if (error === 'manual_fallback') {
+      setAuthMode('manual');
+    } else {
+      setError(error);
+    }
+  };
+
+  const handleBackToOAuth = () => {
+    setAuthMode('oauth');
+    setError(null);
   };
 
   const saveMessages = (newMessages: UIMessage[]) => {
@@ -74,14 +100,15 @@ export function ChatInterface() {
     try {
       abortControllerRef.current = new AbortController();
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Use OpenRouter API endpoint
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'openai/gpt-4o-mini', // OpenRouter model format
           messages: newMessages.map(msg => ({
             role: msg.role,
             content: msg.parts
@@ -158,38 +185,19 @@ export function ChatInterface() {
     browser.storage.local.remove('chat_messages');
   };
 
+  const handleChangeApiKey = () => {
+    setHasApiKey(false);
+    setApiKey('');
+    setAuthMode('oauth');
+    browser.storage.local.remove(['openrouter_api_key', 'openai_api_key']);
+  };
+
+  // Show authentication components if not authenticated
   if (!hasApiKey) {
-    return (
-      <div className="flex items-center justify-center h-full p-6">
-        <div className="w-full max-w-md space-y-4">
-          <div className="text-center space-y-2">
-            <Sparkles className="w-12 h-12 mx-auto text-primary" />
-            <h1 className="text-2xl font-bold">AI Assistant</h1>
-            <p className="text-sm text-muted-foreground">
-              Enter your OpenAI API key to start chatting
-            </p>
-          </div>
-          <form onSubmit={handleApiKeySubmit} className="space-y-3">
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-..."
-              className="w-full px-4 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Save API Key
-            </button>
-          </form>
-          <p className="text-xs text-muted-foreground text-center">
-            Your API key is stored locally and never sent to our servers
-          </p>
-        </div>
-      </div>
-    );
+    if (authMode === 'manual') {
+      return <ManualApiKey onApiKeySubmit={handleApiKeySubmit} onBack={handleBackToOAuth} />;
+    }
+    return <OAuthAuth onAuthComplete={handleOAuthComplete} onAuthError={handleOAuthError} />;
   }
 
   return (
@@ -211,10 +219,7 @@ export function ChatInterface() {
             </button>
           )}
           <button
-            onClick={() => {
-              setHasApiKey(false);
-              setApiKey('');
-            }}
+            onClick={handleChangeApiKey}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Change API Key
