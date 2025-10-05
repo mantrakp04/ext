@@ -188,4 +188,57 @@
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
+  
+  /* Beautiful scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.5510 0.0234 264.3637) transparent;
+  }
+  
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: oklch(0.5510 0.0234 264.3637);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6716 0.1368 48.5130);
+  }
+  
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Dark mode scrollbar */
+  .dark * {
+    scrollbar-color: oklch(0.6268 0 0) transparent;
+  }
+  
+  .dark *::-webkit-scrollbar-thumb {
+    background: oklch(0.6268 0 0);
+  }
+  
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.7214 0.1337 49.9802);
+  }
+  
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* WebKit */
+  }
 }

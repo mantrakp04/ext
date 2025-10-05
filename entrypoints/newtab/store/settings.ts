@@ -11,11 +11,12 @@ export interface Settings {
   userName: string;
   theme: 'light' | 'dark' | 'system';
   searchEngine: 'unduck' | 'google' | 'bing' | 'duckduckgo';
-  showGreeting: boolean;
-  showDate: boolean;
-  showTime: boolean;
+  showDateTime: boolean;
   showQuickLinks: boolean;
-  quickLinksPerRow: 2 | 3 | 4 | 5 | 6;
+  showNotes: boolean;
+  showWeather: boolean;
+  weatherLocation: string;
+  notes: string;
   quickLinks: QuickLink[];
 }
 
@@ -42,11 +43,12 @@ export const defaultSettings: Settings = {
   userName: '',
   theme: 'system',
   searchEngine: 'unduck',
-  showGreeting: true,
-  showDate: true,
-  showTime: true,
+  showDateTime: true,
   showQuickLinks: true,
-  quickLinksPerRow: 4,
+  showNotes: true,
+  showWeather: true,
+  weatherLocation: 'Vancouver',
+  notes: '',
   quickLinks: defaultQuickLinks,
 };
 

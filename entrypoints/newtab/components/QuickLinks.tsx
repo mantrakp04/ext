@@ -9,28 +9,15 @@ export function QuickLinks() {
   const [settings, setSettings] = useAtom(settingsAtom);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  if (!settings.showQuickLinks) return null;
+if (!settings.showQuickLinks) return null;
 
   const removeLink = (id: string) => {
-    const updatedLinks = settings.quickLinks.filter((link) => link.id !== id);
-    setSettings(prev => ({ ...prev, quickLinks: updatedLinks }));
-  };
-
-
-  const getGridColsClass = (cols: number) => {
-    const gridClasses: Record<number, string> = {
-      2: 'grid-cols-2',
-      3: 'grid-cols-2 sm:grid-cols-3', 
-      4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
-      5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
-      6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
-    };
-    return gridClasses[cols] || 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4';
+    setSettings(prev => ({ ...prev, quickLinks: prev.quickLinks.filter((link) => link.id !== id) }));
   };
 
   return (
     <div className="w-full">
-      <div className={`grid gap-2 ${getGridColsClass(settings.quickLinksPerRow)}`}>
+      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
         {settings.quickLinks.map((link) => (
           <Button 
             key={link.id}

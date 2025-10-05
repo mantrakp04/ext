@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -57,9 +58,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {/* User Name */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Name</label>
             <Input
               placeholder="Enter your name"
@@ -69,7 +70,7 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
           </div>
 
           {/* Theme */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Theme</label>
             <div className="flex gap-2">
               {(['light', 'dark', 'system'] as const).map((themeOption) => (
@@ -87,9 +88,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
           </div>
 
           {/* Search Engine */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Search Engine</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               {Object.entries(searchEngines).map(([key, engine]) => (
                 <Button
                   key={key}
@@ -104,50 +105,48 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
           </div>
 
           {/* Display Options */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Display Options</label>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Show greeting</span>
-                <Button
-                  variant={settings.showGreeting ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateSetting('showGreeting', !settings.showGreeting)}
-                >
-                  {settings.showGreeting ? 'On' : 'Off'}
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Show date</span>
-                <Button
-                  variant={settings.showDate ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateSetting('showDate', !settings.showDate)}
-                >
-                  {settings.showDate ? 'On' : 'Off'}
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Show time</span>
-                <Button
-                  variant={settings.showTime ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateSetting('showTime', !settings.showTime)}
-                >
-                  {settings.showTime ? 'On' : 'Off'}
-                </Button>
+                <span className="text-sm">Show date & time</span>
+                <Switch
+                  checked={settings.showDateTime}
+                  onCheckedChange={(checked: boolean) => updateSetting('showDateTime', checked)}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Show quick links</span>
-                <Button
-                  variant={settings.showQuickLinks ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => updateSetting('showQuickLinks', !settings.showQuickLinks)}
-                >
-                  {settings.showQuickLinks ? 'On' : 'Off'}
-                </Button>
+                <Switch
+                  checked={settings.showQuickLinks}
+                  onCheckedChange={(checked: boolean) => updateSetting('showQuickLinks', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Show notes</span>
+                <Switch
+                  checked={settings.showNotes}
+                  onCheckedChange={(checked: boolean) => updateSetting('showNotes', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Show weather</span>
+                <Switch
+                  checked={settings.showWeather}
+                  onCheckedChange={(checked: boolean) => updateSetting('showWeather', checked)}
+                />
               </div>
             </div>
+          </div>
+
+          {/* Weather Location */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Weather Location</label>
+            <Input
+              placeholder="Enter city name (e.g., London, New York)"
+              value={settings.weatherLocation}
+              onChange={(e) => updateSetting('weatherLocation', e.target.value)}
+            />
           </div>
 
         </div>

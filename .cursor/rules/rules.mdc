@@ -4,6 +4,6 @@ alwaysApply: true
 ALWAYS FOLLOW THESE RULES:
 
 - ALWAYS USE bun to install packages
-- NEVER EVER FKIN RUN `bun dev` or `bun run build`
+- NEVER EVER FKIN RUN `bun dev` or `bun run build or compile or anything that build anything you fuck turd`
 - WHENEVER IN DOUBT USE CONTEXT7 MCP TO REFER TO LIBRARY RELATED DOCS
   - ALSO USE IT WHEN TYPE ERRORS OCCUR WHEN USING A PARTICULAR LIBRARY
