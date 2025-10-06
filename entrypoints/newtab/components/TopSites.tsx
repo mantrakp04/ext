@@ -14,7 +14,7 @@ export function TopSites() {
       <div className="w-full">
         <div className="grid gap-2 grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <Button key={index} variant="outline" size="sm" className="px-1" disabled>
+            <Button key={index} variant="outline" className="px-1.5" disabled>
               <div className='flex items-center gap-2 min-w-0 flex-1'>
                 <div className="w-5 h-5 rounded-sm bg-muted animate-pulse" />
                 <div className="h-4 bg-muted rounded animate-pulse flex-1" />
@@ -35,8 +35,7 @@ export function TopSites() {
           <Button
             key={site.id}
             variant="outline"
-            size="sm"
-            className='px-1 !bg-card hover:!bg-accent cursor-pointer'
+            className='px-1.5 !bg-card hover:!bg-accent cursor-pointer'
             onClick={() => window.open(site.url, '_blank')}
           >
             <div className='flex items-center gap-2 min-w-0 flex-1'>

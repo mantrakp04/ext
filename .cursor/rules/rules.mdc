@@ -7,3 +7,85 @@ ALWAYS FOLLOW THESE RULES:
 - NEVER EVER FKIN RUN `bun dev` or `bun run build or compile or anything that build anything you fuck turd`
 - WHENEVER IN DOUBT USE CONTEXT7 MCP TO REFER TO LIBRARY RELATED DOCS
   - ALSO USE IT WHEN TYPE ERRORS OCCUR WHEN USING A PARTICULAR LIBRARY
+
+## Generalized Feature Integration Methodology
+
+### Overview
+This document outlines a systematic approach for integrating new features into existing applications, with emphasis on configurability, user choice, and robust implementation patterns.
+
+### Phase 1: Research & Problem Analysis
+1. **Documentation Research**: Use Context7 MCP to research relevant libraries, frameworks, and APIs
+2. **Web Search**: Conduct targeted web searches for current best practices and limitations
+3. **Solution Discovery**: Identify multiple implementation approaches and evaluate trade-offs
+4. **Constraint Analysis**: Understand platform limitations and security restrictions
+
+### Phase 2: Configuration-First Design
+1. **Settings Interface Extension**
+   ```typescript
+   export interface Settings {
+     // ... existing properties
+     newFeatureEnabled: boolean; // Feature toggle
+     newFeatureConfig?: FeatureConfig; // Optional configuration
+   }
+   ```
+
+2. **Default Settings Strategy**
+   - Enable by default for user-friendly features
+   - Disable by default for experimental/advanced features
+   - Provide sensible defaults for configuration objects
+
+3. **UI Integration Pattern**
+   - Add controls in logical settings sections
+   - Use appropriate input types (Switch, Select, Input, etc.)
+   - Group related settings together
+   - Provide clear labels and descriptions
+
+### Phase 3: Multi-Layer Implementation
+1. **Core Logic Layer**: Implement main functionality with conditional execution
+2. **Component Layer**: Integrate feature into React components with proper hooks
+3. **Entry Point Layer**: Handle initialization and early-stage feature activation
+4. **Persistence Layer**: Ensure settings are properly stored and retrieved
+
+### Phase 4: Implementation Pattern
+```
+1. Research & Documentation (Context7 MCP + Web Search)
+2. Settings Interface Update (Type definitions)
+3. Default Configuration (Default values)
+4. UI Integration (Settings dialog/controls)
+5. Core Logic Implementation (Main functionality)
+6. Component Integration (React components)
+7. Entry Point Integration (Initialization logic)
+8. Testing & Validation (Linting, functionality, edge cases)
+```
+
+### Phase 5: Code Structure Principles
+- **Conditional Execution**: Always check settings before applying features
+- **Graceful Degradation**: Provide fallback behavior when feature is disabled
+- **Error Handling**: Handle localStorage parsing, API failures, and edge cases
+- **Reactive Updates**: Use proper dependency arrays in useEffect hooks
+- **Persistence**: Store settings in appropriate storage mechanism
+
+### Phase 6: Testing Strategy
+- [ ] Feature works when enabled (default state)
+- [ ] Feature disabled when setting is off
+- [ ] Settings persist across sessions
+- [ ] No linting errors introduced
+- [ ] Graceful fallback behavior
+- [ ] Edge case handling (corrupted settings, missing values)
+- [ ] Performance impact assessment
+
+### Key Principles
+- **User Choice**: Features should be configurable, not forced
+- **Sensible Defaults**: Choose defaults that benefit most users
+- **Progressive Enhancement**: Core functionality works without features
+- **Documentation**: Clear comments explaining workarounds and limitations
+- **Maintainability**: Clean, readable code with proper separation of concerns
+
+### Common Patterns
+- **Workaround Integration**: When platform limitations require creative solutions
+- **Multi-Implementation Approach**: Try different strategies, document failures
+- **Configuration Cascade**: Settings checked at multiple levels for reliability
+- **Fallback Strategy**: Always have a "safe" mode when features fail
+
+This methodology can be applied to any feature integration requiring configuration options, platform workarounds, or multi-layer implementation strategies.
+

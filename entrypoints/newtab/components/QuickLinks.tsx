@@ -23,8 +23,7 @@ if (!settings.showQuickLinks) return null;
           <Button
             key={link.id}
             variant="outline"
-            size="sm"
-            className='px-1 group !bg-card hover:!bg-accent cursor-pointer'
+            className='px-1.5 group !bg-card hover:!bg-accent cursor-pointer'
             onClick={() => window.open(link.url, '_blank')}
           >
             <div className='flex items-center gap-2 min-w-0 flex-1'>
@@ -47,8 +46,7 @@ if (!settings.showQuickLinks) return null;
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              className="justify-center px-1 border-dashed !bg-card hover:!bg-accent cursor-pointer"
+              className="justify-center px-1.5 border-dashed !bg-card hover:!bg-accent cursor-pointer"
             >
               <Plus className="size-4" />
             </Button>
