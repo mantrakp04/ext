@@ -4,6 +4,7 @@ import { settingsAtom } from '../store/settings';
 import { TimeWidget } from './TimeWidget';
 import { NotesWidget } from './NotesWidget';
 import { WeatherWidgetSquare } from './WeatherWidget';
+import { StockWidget } from './StockWidget';
 
 export type WidgetSize = 'square' | 'rectangle';
 
@@ -14,29 +15,30 @@ export interface Widget {
   type: WidgetType;
   size: WidgetSize;
   config: Record<string, any>;
-  isVisible: () => boolean;
+  isVisible: boolean;
 }
 
-const renderWidget = (widget: Widget): ReactNode => {
+const renderWidget = ({
+  widget,
+  onRemove,
+  onConfigChange,
+}: {
+  widget: Widget;
+  onRemove: (widgetId: string) => void;
+  onConfigChange: (widgetId: string, config: Record<string, any>) => void;
+}): ReactNode => {
   switch (widget.type) {
     case 'time':
-      return <TimeWidget timezone={widget.config.timezone} />;
+      return <TimeWidget props={{ widget, onRemove, onConfigChange }} />;
     case 'notes':
-      return <NotesWidget id={widget.id} notes={widget.config.notes || ''} />;
+      return <NotesWidget props={{ widget, onRemove, onConfigChange }} />;
     case 'weather':
-      return <WeatherWidgetSquare location={widget.config.location || 'Vancouver'} />;
+      return <WeatherWidgetSquare props={{ widget, onRemove, onConfigChange }} />;
     case 'stocks':
-      // TODO: Implement stocks widget
-      return (
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm h-full w-full flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Stocks widget coming soon</p>
-          </div>
-        </div>
-      );
+      return <StockWidget props={{ widget, onRemove, onConfigChange }} />;
     default:
       return (
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm h-full w-full flex items-center justify-center">
+        <div className="h-full w-full flex items-center justify-center">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Unknown widget type</p>
           </div>
@@ -46,10 +48,10 @@ const renderWidget = (widget: Widget): ReactNode => {
 };
 
 export function Widgets() {
-  const [settings] = useAtom(settingsAtom);
+  const [settings, setSettings] = useAtom(settingsAtom);
   const widgets = settings.widgets || [];
   
-  const visibleWidgets = widgets.filter(widget => widget.isVisible());
+  const visibleWidgets = widgets.filter(widget => widget.isVisible);
   
   const calculateGridUnits = () => {
     let totalUnits = 0;
@@ -72,10 +74,28 @@ export function Widgets() {
   };
 
   const displayWidgets = calculateGridUnits();
+
+  const handleRemoveWidget = (widgetId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      widgets: (prev.widgets || []).filter(widget => widget.id !== widgetId)
+    }));
+  };
+
+  const handleConfigChange = (widgetId: string, config: Record<string, any>) => {
+    setSettings(prev => ({
+      ...prev,
+      widgets: (prev.widgets || []).map(widget =>
+        widget.id === widgetId
+          ? { ...widget, config }
+          : widget
+      )
+    }));
+  };
   
   return (
     <div 
-      className="grid gap-2 grid-cols-4"
+      className="grid gap-2 grid-cols-4 w-full"
     >
       {displayWidgets.map((widget) => (
         <div
@@ -85,7 +105,11 @@ export function Widgets() {
             h-40
           `}
         >
-          {renderWidget(widget)}
+          {renderWidget({
+            widget,
+            onRemove: handleRemoveWidget,
+            onConfigChange: handleConfigChange,
+          })}
         </div>
       ))}
     </div>

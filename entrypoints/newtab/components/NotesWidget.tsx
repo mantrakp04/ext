@@ -1,15 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAtom } from 'jotai';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Edit3 } from 'lucide-react';
-import { settingsAtom, defaultSettings } from '../store/settings';
+import { Widget, WidgetContent } from './WidgetCard';
+import { Widget as WidgetType } from './Widgets';
 
-export function NotesWidget({ id, notes }: { id: string, notes: string }) {
-  const [settings, setSettings] = useAtom(settingsAtom);
+export function NotesWidget({ props }: { props: {
+  widget: WidgetType,
+  onRemove: (widgetId: string) => void,
+  onConfigChange: (widgetId: string, config: Record<string, any>) => void
+}}) {
+  const { widget, onRemove, onConfigChange } = props;
   const [isEditing, setIsEditing] = useState(false);
+  const [localNotes, setLocalNotes] = useState(widget.config.notes || '');
   const cardRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const startEditing = () => setIsEditing(true);
   const stopEditing = () => setIsEditing(false);
+
+  // Debounced function to save notes
+  const debouncedSaveNotes = useCallback((value: string) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      onConfigChange(widget.id, { ...widget.config, notes: value });
+    }, 500); // 500ms debounce
+  }, [onConfigChange, widget.id, widget.config]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -20,18 +37,15 @@ export function NotesWidget({ id, notes }: { id: string, notes: string }) {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSettings(prev => {
-      const currentSettings = typeof prev === 'object' && 'widgets' in prev ? prev : defaultSettings;
-      return {
-        ...currentSettings,
-        widgets: (currentSettings.widgets || []).map((widget) =>
-          widget.id === id
-            ? { ...widget, config: { ...widget.config, notes: e.target.value } }
-            : widget
-        )
-      };
-    });
+    const value = e.target.value;
+    setLocalNotes(value);
+    debouncedSaveNotes(value);
   };
+
+  // Update local notes when widget config changes externally
+  useEffect(() => {
+    setLocalNotes(widget.config.notes || '');
+  }, [widget.config.notes]);
 
   const handleCardClick = () => {
     if (!isEditing) startEditing();
@@ -50,41 +64,53 @@ export function NotesWidget({ id, notes }: { id: string, notes: string }) {
     }
   }, [isEditing]);
 
-  return (
-    <div 
-      ref={cardRef}
-      className="bg-card border border-border rounded-2xl p-4 shadow-sm h-full w-full flex flex-col cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground">Notes</h3>
-        {!isEditing && <Edit3 className="h-3 w-3 text-muted-foreground" />}
-      </div>
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
-      <div className="flex-1 flex flex-col min-h-0">
-        {isEditing ? (
-          <textarea
-            value={notes}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onBlur={stopEditing}
-            placeholder="Write your notes here..."
-            className="flex-1 resize-none border-none p-0 focus-visible:ring-0 text-sm bg-transparent outline-none min-h-0"
-            style={{ fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit' }}
-            autoFocus
-          />
-        ) : (
-          <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
-            {notes ? (
-              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                {notes}
-              </p>
+  return (
+    <Widget widget={widget} onRemove={onRemove}>
+      <WidgetContent>
+        <div 
+          ref={cardRef}
+          className="h-full w-full flex flex-col cursor-pointer"
+          onClick={handleCardClick}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Notes</h3>
+            {!isEditing && <Edit3 className="h-3 w-3 text-muted-foreground" />}
+          </div>
+
+          <div className="flex-1 flex flex-col min-h-0">
+            {isEditing ? (
+              <textarea
+                value={localNotes}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                onBlur={stopEditing}
+                placeholder="Write your notes here..."
+                className="flex-1 resize-none border-none p-0 focus-visible:ring-0 text-sm bg-transparent outline-none min-h-0 whitespace-pre-wrap break-words leading-relaxed"
+                autoFocus
+              />
             ) : (
-              <p className="text-sm text-muted-foreground">Click to add notes...</p>
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
+                {localNotes ? (
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                    {localNotes}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Click to add notes...</p>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </WidgetContent>
+    </Widget>
   );
 }

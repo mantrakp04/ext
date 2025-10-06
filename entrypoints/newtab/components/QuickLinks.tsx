@@ -23,6 +23,7 @@ if (!settings.showQuickLinks) return null;
           <Button
             key={link.id}
             variant="outline"
+            size="sm"
             className='px-1 group'
             onClick={() => window.open(link.url, '_blank')}
           >

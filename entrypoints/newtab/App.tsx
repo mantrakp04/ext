@@ -16,7 +16,7 @@ function NewTabApp() {
       </div>
 
       {/* Main Content Container */}
-      <div className="h-full rounded-lg bg-background/97">
+      <div className="h-full rounded-lg bg-background/90">
         <div className="flex flex-col h-full items-center justify-center gap-2 max-w-2xl mx-auto">
           <SearchBar />
           <Widgets />

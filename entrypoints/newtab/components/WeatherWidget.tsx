@@ -2,6 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets } from "lucide-react"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Widget, WidgetContent, WidgetConfig } from './WidgetCard'
+import { Widget as WidgetType } from "./Widgets"
 
 interface WeatherData {
   temperature: number
@@ -57,14 +61,18 @@ const fetchWeatherData = async (location: string): Promise<WeatherData> => {
   }
 }
 
-export function WeatherWidgetSquare({ location }: {
-  location: string;
-}) {
+export function WeatherWidgetSquare({ props }: { props: {
+  widget: WidgetType,
+  onRemove: (widgetId: string) => void,
+  onConfigChange: (widgetId: string, config: Record<string, any>) => void
+}}) {
+  const { widget, onRemove, onConfigChange } = props;
+  const [location, setLocation] = useState(widget.config.location || '');
   
   const { data: weather, isLoading, error } = useQuery({
-    queryKey: ['weather', location],
-    queryFn: () => fetchWeatherData(location),
-    enabled: !!location,
+    queryKey: ['weather', widget.config.location],
+    queryFn: () => fetchWeatherData(widget.config.location),
+    enabled: !!widget.config.location,
     staleTime: 1000 * 60 * 10, // 10 minutes
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
     refetchInterval: 1000 * 60 * 10, // Refetch every 10 minutes
@@ -73,61 +81,145 @@ export function WeatherWidgetSquare({ location }: {
 
   if (isLoading) {
     return (
-      <div className="bg-card border border-border rounded-xl p-4 shadow-sm h-full w-full flex items-center justify-center">
-        <div className="text-center space-y-2">
-          <Cloud className="h-8 w-8 text-muted-foreground mx-auto animate-pulse" strokeWidth={1.5} />
-          <p className="text-xs text-muted-foreground font-medium">Loading...</p>
-        </div>
-      </div>
+      <Widget widget={widget} onRemove={onRemove}>
+        <WidgetContent>
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <Cloud className="h-8 w-8 text-muted-foreground mx-auto animate-pulse" strokeWidth={1.5} />
+              <p className="text-xs text-muted-foreground font-medium">Loading...</p>
+            </div>
+          </div>
+        </WidgetContent>
+        
+        <WidgetConfig onSubmit={(e) => {
+          e.preventDefault();
+          onConfigChange(widget.id, { ...widget.config, location });
+        }}>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g., Vancouver, London, Tokyo"
+                className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter a city name or location
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="submit">Save Changes</Button>
+          </div>
+        </WidgetConfig>
+      </Widget>
     )
   }
 
   if (error || !weather) {
     return (
-      <div className="bg-card border border-border rounded-xl p-4 shadow-sm h-full w-full flex items-center justify-center">
-        <div className="text-center space-y-2">
-          <Cloud className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1.5} />
-          <div>
-            <p className="text-xs text-foreground font-medium">{error ? "Weather unavailable" : "Weather unavailable"}</p>
-            <p className="text-xs text-muted-foreground mt-1">Set location in settings</p>
+      <Widget widget={widget} onRemove={onRemove}>
+        <WidgetContent>
+          <div className="h-full w-full flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <Cloud className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1.5} />
+              <div>
+                <p className="text-xs text-foreground font-medium">{error ? "Weather unavailable" : "Weather unavailable"}</p>
+                <p className="text-xs text-muted-foreground mt-1">Set location in settings</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </WidgetContent>
+        
+        <WidgetConfig onSubmit={(e) => {
+          e.preventDefault();
+          onConfigChange(widget.id, { ...widget.config, location });
+        }}>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g., Vancouver, London, Tokyo"
+                className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter a city name or location
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="submit">Save Changes</Button>
+          </div>
+        </WidgetConfig>
+      </Widget>
     )
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-3 shadow-sm h-full w-full flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-muted-foreground font-mono truncate">{weather.location}</span>
-        <span className="text-xs text-muted-foreground font-mono capitalize truncate ml-1">{weather.description}</span>
-      </div>
+    <Widget widget={widget} onRemove={onRemove}>
+      <WidgetContent>
+        <div className="h-full w-full flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground font-mono truncate">{weather.location}</span>
+            <span className="text-xs text-muted-foreground font-mono capitalize truncate ml-1">{weather.description}</span>
+          </div>
 
-      {/* Main weather display - centered for square layout */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-2 min-h-0">
-        {/* Weather icon and temperature */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            {getWeatherIcon(weather.icon)}
-            <div className="text-2xl font-light tracking-tight text-foreground">{weather.temperature}°</div>
+          {/* Main weather display - centered for square layout */}
+          <div className="flex-1 flex flex-col items-center justify-center space-y-2 min-h-0">
+            {/* Weather icon and temperature */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {getWeatherIcon(weather.icon)}
+                <div className="text-2xl font-light tracking-tight text-foreground">{weather.temperature}°</div>
+              </div>
+            </div>
+
+            {/* Weather details - compact grid */}
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <div className="flex flex-col items-center gap-0.5">
+                <Wind className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
+                <p className="text-xs text-muted-foreground">Wind</p>
+                <p className="text-xs font-medium text-foreground">{weather.windSpeed} km/h</p>
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <Droplets className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
+                <p className="text-xs text-muted-foreground">Humidity</p>
+                <p className="text-xs font-medium text-foreground">{weather.humidity}%</p>
+              </div>
+            </div>
           </div>
         </div>
+      </WidgetContent>
 
-        {/* Weather details - compact grid */}
-        <div className="grid grid-cols-2 gap-2 w-full">
-          <div className="flex flex-col items-center gap-0.5">
-            <Wind className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
-            <p className="text-xs text-muted-foreground">Wind</p>
-            <p className="text-xs font-medium text-foreground">{weather.windSpeed} km/h</p>
-          </div>
-          <div className="flex flex-col items-center gap-0.5">
-            <Droplets className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
-            <p className="text-xs text-muted-foreground">Humidity</p>
-            <p className="text-xs font-medium text-foreground">{weather.humidity}%</p>
+      <WidgetConfig onSubmit={(e) => {
+        e.preventDefault();
+        onConfigChange(widget.id, { ...widget.config, location });
+      }}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g., Vancouver, London, Tokyo"
+              className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background text-foreground"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter a city name or location
+            </p>
           </div>
         </div>
-      </div>
-    </div>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button type="submit">Save Changes</Button>
+        </div>
+      </WidgetConfig>
+    </Widget>
   )
 }

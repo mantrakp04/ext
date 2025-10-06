@@ -8,7 +8,7 @@ export function WidgetManager() {
 
   // Calculate current grid usage
   const calculateGridUsage = () => {
-    const visibleWidgets = (settings.widgets || []).filter(widget => widget.isVisible());
+    const visibleWidgets = (settings.widgets || []).filter(widget => widget.isVisible);
     let totalUnits = 0;
     
     for (const widget of visibleWidgets) {
@@ -28,14 +28,14 @@ export function WidgetManager() {
       time: {},
       notes: { notes: '' },
       weather: { location: 'Vancouver' },
-      stocks: { symbols: ['AAPL', 'GOOGL', 'MSFT'] },
+      stocks: { symbol: 'AAPL' },
     };
 
     const widgetSizes: Record<WidgetType, WidgetSize> = {
       time: 'square',
       notes: 'rectangle',
       weather: 'square',
-      stocks: 'rectangle',
+      stocks: 'square',
     };
 
     return {
@@ -43,7 +43,7 @@ export function WidgetManager() {
       type,
       size: widgetSizes[type],
       config: { ...defaultConfigs[type], ...config },
-      isVisible: () => true,
+      isVisible: true,
     };
   };
 
@@ -71,7 +71,7 @@ export function WidgetManager() {
       ...prev,
       widgets: (prev.widgets || []).map(widget =>
         widget.id === widgetId
-          ? { ...widget, isVisible: () => !widget.isVisible() }
+          ? { ...widget, isVisible: !widget.isVisible }
           : widget
       )
     }));
@@ -186,7 +186,7 @@ export function WidgetManager() {
             <div
               key={widget.id}
               className={`flex items-center justify-between p-2 rounded-md text-xs transition-colors ${
-                widget.isVisible() 
+                widget.isVisible 
                   ? 'bg-muted text-foreground' 
                   : 'bg-muted/50 text-muted-foreground'
               }`}
@@ -201,9 +201,9 @@ export function WidgetManager() {
                 <button
                   onClick={() => toggleWidgetVisibility(widget.id)}
                   className="p-1 hover:bg-muted-foreground/10 rounded transition-colors"
-                  title={widget.isVisible() ? 'Hide widget' : 'Show widget'}
+                  title={widget.isVisible ? 'Hide widget' : 'Show widget'}
                 >
-                  {widget.isVisible() ? (
+                  {widget.isVisible ? (
                     <Eye className="h-3 w-3" />
                   ) : (
                     <EyeOff className="h-3 w-3" />
