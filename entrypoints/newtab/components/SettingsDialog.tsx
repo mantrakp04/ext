@@ -4,6 +4,7 @@ import { Settings, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import {
   Dialog,
   DialogContent,
@@ -145,6 +146,22 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
           {/* Background Image */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Background Image</label>
+            
+            {/* Background Blur Control */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Background Blur</span>
+                <span className="text-sm text-muted-foreground">{settings.backgroundBlur}px</span>
+              </div>
+              <Slider
+                value={settings.backgroundBlur}
+                onValueChange={(value) => updateSetting('backgroundBlur', value)}
+                min={0}
+                max={20}
+                step={1}
+                className="w-full"
+              />
+            </div>
             
             {/* Current Background Preview */}
             {settings.backgroundImage && (

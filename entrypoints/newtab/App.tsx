@@ -4,8 +4,11 @@ import { Widgets } from './components/Widgets';
 import { SearchBar } from './components/SearchBar';
 import { QuickLinks } from './components/QuickLinks';
 import { QueryProvider } from '../../components/QueryProvider';
+import { useAtom } from 'jotai';
+import { settingsAtom } from './store/settings';
 
 function NewTabApp() {
+  const [settings] = useAtom(settingsAtom);
 
   return (
     <BackgroundWrapper>
@@ -16,7 +19,12 @@ function NewTabApp() {
       </div>
 
       {/* Main Content Container */}
-      <div className="h-full rounded-lg bg-background/90">
+      <div 
+        className="h-full rounded-lg bg-background/80"
+        style={{
+          backdropFilter: settings.backgroundBlur > 0 ? `blur(${settings.backgroundBlur}px)` : 'none',
+        }}
+      >
         <div className="flex flex-col h-full items-center justify-center gap-2 max-w-2xl mx-auto">
           <SearchBar />
           <Widgets />

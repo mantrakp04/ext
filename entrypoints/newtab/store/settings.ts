@@ -14,6 +14,7 @@ export interface Settings {
   widgets: Widget[];
   quickLinks: QuickLink[];
   backgroundImage: string;
+  backgroundBlur: number;
 }
 
 export const getFaviconUrl = (url: string): string => {
@@ -68,6 +69,7 @@ export const defaultSettings: Settings = {
   ],
   quickLinks: defaultQuickLinks,
   backgroundImage: '',
+  backgroundBlur: 0,
 };
 
 export const searchEngines = {
