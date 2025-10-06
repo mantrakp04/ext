@@ -134,6 +134,13 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                   onCheckedChange={(checked: boolean) => updateSetting('showQuickLinks', checked)}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Show top sites</span>
+                <Switch
+                  checked={settings.showTopSites}
+                  onCheckedChange={(checked: boolean) => updateSetting('showTopSites', checked)}
+                />
+              </div>
             </div>
           </div>
 

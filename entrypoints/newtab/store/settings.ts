@@ -11,6 +11,7 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system';
   searchEngine: 'unduck' | 'google' | 'bing' | 'duckduckgo';
   showQuickLinks: boolean;
+  showTopSites: boolean;
   widgets: Widget[];
   quickLinks: QuickLink[];
   backgroundImage: string;
@@ -37,6 +38,7 @@ export const defaultSettings: Settings = {
   theme: 'system',
   searchEngine: 'unduck',
   showQuickLinks: true,
+  showTopSites: true,
   widgets: [
     {
       id: 'time-1',

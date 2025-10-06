@@ -15,6 +15,8 @@ export default defineConfig({
       'sidePanel',
       'activeTab',
       'tabs',
+      'topSites',
+      'history',
     ],
     host_permissions: [
       'https://openrouter.ai/*',

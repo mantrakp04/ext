@@ -2,6 +2,7 @@ import { ModeToggle, ThemeProvider, BackgroundWrapper } from '@/components/theme
 import { SettingsDialog } from './components/SettingsDialog';
 import { Widgets } from './components/Widgets';
 import { SearchBar } from './components/SearchBar';
+import { TopSites } from './components/TopSites';
 import { QuickLinks } from './components/QuickLinks';
 import { QueryProvider } from '../../components/QueryProvider';
 import { useAtom } from 'jotai';
@@ -28,6 +29,7 @@ function NewTabApp() {
         <div className="flex flex-col h-full items-center justify-center gap-2 max-w-2xl mx-auto">
           <SearchBar />
           <Widgets />
+          <TopSites />
           <QuickLinks />
         </div>
       </div>

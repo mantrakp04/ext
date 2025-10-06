@@ -11,4 +11,14 @@ export default defineBackground(() => {
 
   // Set up OAuth listener for handling authentication callbacks
   OpenRouterOAuthService.setupOAuthListener();
+
+  // Handle topSites requests from new tab page
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "getTopSites") {
+      chrome.topSites.get((sites) => {
+        sendResponse({ topSites: sites });
+      });
+      return true; // Indicates async response
+    }
+  });
 });
