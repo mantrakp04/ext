@@ -17,6 +17,7 @@ export default defineConfig({
       'tabs',
       'topSites',
       'history',
+      'scripting',
     ],
     host_permissions: [
       'https://openrouter.ai/*',

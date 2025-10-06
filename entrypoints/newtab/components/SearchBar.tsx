@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAtom } from 'jotai';
 import { Plus, Mic, ArrowUp } from 'lucide-react';
-import { AutosizeTextarea } from '@/components/ui/autosize-textarea';
+import { AutosizeTextarea, AutosizeTextAreaRef } from '@/components/ui/autosize-textarea';
 import { settingsAtom, searchEngines } from '../store/settings';
 import { cn } from '@/lib/utils';
 
 export function SearchBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [settings] = useAtom(settingsAtom);
+  const textareaRef = useRef<AutosizeTextAreaRef>(null);
+
+  useEffect(() => {
+    if (settings.autoFocusSearchBar && textareaRef.current?.textArea) {
+      textareaRef.current.textArea.focus();
+    }
+  }, [settings.autoFocusSearchBar]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +49,16 @@ export function SearchBar() {
         {/* Textarea container */}
         <div className="flex-1">
           <AutosizeTextarea
+            ref={textareaRef}
             placeholder="Search the web or enter a URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSearch(e);
+              }
+            }}
             className={cn(
               "resize-none border-none bg-transparent pt-3.5 text-sm leading-relaxed",
               "placeholder:text-muted-foreground focus-visible:outline-none",
