@@ -17,6 +17,7 @@ export interface Settings {
   backgroundImage: string;
   backgroundBlur: number;
   autoFocusSearchBar: boolean;
+  searchAutoComplete: boolean;
 }
 
 export const getFaviconUrl = (url: string): string => {
@@ -74,6 +75,7 @@ export const defaultSettings: Settings = {
   backgroundImage: '',
   backgroundBlur: 0,
   autoFocusSearchBar: true,
+  searchAutoComplete: true,
 };
 
 export const searchEngines = {

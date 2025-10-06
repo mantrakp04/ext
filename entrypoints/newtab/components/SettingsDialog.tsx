@@ -148,6 +148,13 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                   onCheckedChange={(checked: boolean) => updateSetting('autoFocusSearchBar', checked)}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Search autocomplete</span>
+                <Switch
+                  checked={settings.searchAutoComplete}
+                  onCheckedChange={(checked: boolean) => updateSetting('searchAutoComplete', checked)}
+                />
+              </div>
             </div>
           </div>
 

@@ -17,6 +17,8 @@ export default defineConfig({
       'tabs',
       'topSites',
       'history',
+      'bookmarks',
+      'sessions',
       'scripting',
     ],
     host_permissions: [
