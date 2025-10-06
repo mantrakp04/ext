@@ -1,4 +1,3 @@
-import { OpenRouterOAuthService } from '@/lib/openrouter/oauth';
 import type { SearchSuggestion } from '@/types';
 
 export default defineBackground(() => {
@@ -9,9 +8,6 @@ export default defineBackground(() => {
         console.error('Error setting panel behavior:', error);
       });
   });
-
-  // Set up OAuth listener for handling authentication callbacks
-  OpenRouterOAuthService.setupOAuthListener();
 
   // Handle messages from new tab page
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

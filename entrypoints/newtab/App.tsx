@@ -4,7 +4,7 @@ import { Widgets } from './components/Widgets';
 import { SearchBar } from './components/SearchBar';
 import { TopSites } from './components/TopSites';
 import { QuickLinks } from './components/QuickLinks';
-import { QueryProvider } from '../../components/QueryProvider';
+import { QueryProvider } from '../../components/query-provider';
 import { useAtom } from 'jotai';
 import { settingsAtom } from './store/settings';
 

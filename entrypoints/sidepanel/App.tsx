@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@/components/theme-provider';
-import { QueryProvider } from '@/components/QueryProvider';
+import { QueryProvider } from '@/components/query-provider';
+import { ConvexProvider } from '@/components/convex-provider';
 import { ChatInterface } from './components/ChatInterface';
 
 function SidePanelApp() {
@@ -12,11 +13,13 @@ function SidePanelApp() {
 
 function App() {
   return (
-    <QueryProvider>
-      <ThemeProvider>
-        <SidePanelApp />
-      </ThemeProvider>
-    </QueryProvider>
+    <ConvexProvider>
+      <QueryProvider>
+        <ThemeProvider>
+          <SidePanelApp />
+        </ThemeProvider>
+      </QueryProvider>
+    </ConvexProvider>
   );
 }
 

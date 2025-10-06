@@ -22,8 +22,8 @@ export default defineConfig({
       'scripting',
     ],
     host_permissions: [
-      'https://openrouter.ai/*',
-      'http://localhost:3000/*',
+      'http://localhost:*/*',
+      'chrome-extension://*/*',
     ],
   },
 });
