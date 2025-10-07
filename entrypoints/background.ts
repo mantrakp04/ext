@@ -1,25 +1,6 @@
 import type { SearchSuggestion } from '@/types';
 
 export default defineBackground(() => {
-  browser.runtime.onInstalled.addListener(() => {
-    browser.sidePanel
-      .setPanelBehavior({ openPanelOnActionClick: true })
-      .catch((error) => {
-        console.error('Error setting panel behavior:', error);
-      });
-  });
-
-  // check if the url is a callback url
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete' && tab.url?.includes('localhost/ext/callback')) {
-      chrome.runtime.sendMessage({
-        action: 'oauthCallback',
-        data: tab.url,
-      });
-    }
-  });
-
-  // Handle messages from new tab page
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getTopSites") {
       chrome.topSites.get((sites) => {

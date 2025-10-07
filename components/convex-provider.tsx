@@ -11,51 +11,6 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string, 
 
 export function ConvexProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
-
-  useEffect(() => {
-    const handleOAuthCallback = async (message: any) => {
-      if (message.action === 'oauthCallback') {
-        console.log('Received OAuth callback:', message.data);
-        
-        try {
-          // Extract the URL and parse the ott parameter
-          const callbackUrl = message.data;
-          const url = new URL(callbackUrl);
-          const ott = url.searchParams.get('ott');
-          
-          if (ott) {
-            const response = await fetch(`${import.meta.env.VITE_CONVEX_SITE_URL}/api/auth/callback/google?ott=${ott}`, {
-              method: 'GET',
-              credentials: 'include',
-            });
-
-            console.log('OAuth callback response:', response);
-            
-            if (response.ok) {
-              chrome.windows.getAll((windows) => {
-                windows.forEach((window) => {
-                  if (window.tabs?.[0]?.url?.includes('localhost/ext/callback')) {
-                    chrome.windows.remove(window.id!);
-                  }
-                });
-              });
-            } else {
-              console.error('Failed to process OAuth callback:', response.statusText);
-            }
-          }
-        } catch (error) {
-          console.error('Error handling OAuth callback:', error);
-        }
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(handleOAuthCallback);
-    
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleOAuthCallback);
-    };
-  }, []);
-
   if (isPending) {
     return <div>Loading...</div>;
   }
@@ -72,24 +27,19 @@ export function ConvexProvider({ children }: { children: React.ReactNode }) {
               <Button onClick={async () => {
                 const { data } = await authClient.signIn.social({
                   provider: "google",
-                  callbackURL: 'http://localhost/ext/callback',
-                  disableRedirect: true,
+                  callbackURL: chrome.runtime.getURL('auth.html'),
+                  disableRedirect: window.location.pathname === '/sidepanel.html',
                 });
-                console.log(data);
-                const url = data?.url;
-                if (url) {
-                  chrome.windows.create({
-                    url: url,
-                    type: 'popup',
-                    width: 500,
-                    height: 600,
-                    left: 100,
-                    top: 100
-                  });
+
+                if (data?.url) {
+                  window.open(data.url, '_blank');
                 }
               }}>
                 Sign in with Google
               </Button>
+              <a className="text-sm text-gray-600" onClick={() => {
+                window.location.reload();
+              }}>Refresh</a>
             </div>
           )}
         </ConvexBetterAuthProvider>
@@ -97,3 +47,13 @@ export function ConvexProvider({ children }: { children: React.ReactNode }) {
     </QueryProvider>
   );
 } 
+
+export function SignOutButton() {
+  return (
+    <Button onClick={async () => {
+      await authClient.signOut();
+    }}>
+      Sign out
+    </Button>
+  );
+}

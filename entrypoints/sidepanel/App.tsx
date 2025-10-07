@@ -1,20 +1,13 @@
-import { ConvexProvider } from '@/components/convex-provider';
 import { ChatInterface } from './components/ChatInterface';
-
-function SidePanelApp() {
-  return (
-    <div className="h-screen w-full bg-background">
-      <ChatInterface />
-    </div>
-  );
-}
+import { SignOutButton } from '@/components/convex-provider';
 
 function App() {
   return (
-    <ConvexProvider>
-      <SidePanelApp />
-    </ConvexProvider>
-  );
+    <div className="h-screen w-full bg-background">
+      <ChatInterface />
+      <SignOutButton />
+    </div>
+  )
 }
 
 export default App;
