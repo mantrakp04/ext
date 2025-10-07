@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ThemeProvider } from '@/components/theme-provider';
 import { QueryProvider } from '@/components/query-provider';
 import { ConvexReactClient } from "convex/react";
@@ -11,6 +11,50 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string, 
 
 export function ConvexProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
+
+  useEffect(() => {
+    const handleOAuthCallback = async (message: any) => {
+      if (message.action === 'oauthCallback') {
+        console.log('Received OAuth callback:', message.data);
+        
+        try {
+          // Extract the URL and parse the ott parameter
+          const callbackUrl = message.data;
+          const url = new URL(callbackUrl);
+          const ott = url.searchParams.get('ott');
+          
+          if (ott) {
+            const response = await fetch(`${import.meta.env.VITE_CONVEX_SITE_URL}/api/auth/callback/google?ott=${ott}`, {
+              method: 'GET',
+              credentials: 'include',
+            });
+
+            console.log('OAuth callback response:', response);
+            
+            if (response.ok) {
+              chrome.windows.getAll((windows) => {
+                windows.forEach((window) => {
+                  if (window.tabs?.[0]?.url?.includes('localhost/ext/callback')) {
+                    chrome.windows.remove(window.id!);
+                  }
+                });
+              });
+            } else {
+              console.error('Failed to process OAuth callback:', response.statusText);
+            }
+          }
+        } catch (error) {
+          console.error('Error handling OAuth callback:', error);
+        }
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleOAuthCallback);
+    
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleOAuthCallback);
+    };
+  }, []);
 
   if (isPending) {
     return <div>Loading...</div>;

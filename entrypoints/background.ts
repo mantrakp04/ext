@@ -9,6 +9,16 @@ export default defineBackground(() => {
       });
   });
 
+  // check if the url is a callback url
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete' && tab.url?.includes('localhost/ext/callback')) {
+      chrome.runtime.sendMessage({
+        action: 'oauthCallback',
+        data: tab.url,
+      });
+    }
+  });
+
   // Handle messages from new tab page
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getTopSites") {
