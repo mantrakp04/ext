@@ -3,18 +3,18 @@ import { Sparkles, Trash2 } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import type { UIMessage } from 'ai';
-import { 
-  Conversation, 
-  ConversationContent, 
+import {
+  Conversation,
+  ConversationContent,
   ConversationEmptyState,
-  ConversationScrollButton 
+  ConversationScrollButton
 } from '@/components/ai-elements/conversation';
-import { 
-  Message, 
-  MessageContent, 
-  MessageAvatar 
+import {
+  Message,
+  MessageContent,
+  MessageAvatar
 } from '@/components/ai-elements/message';
-import { 
+import {
   PromptInput,
   PromptInputBody,
   PromptInputTextarea,

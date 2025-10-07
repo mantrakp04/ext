@@ -21,9 +21,6 @@ export function ConvexProvider({ children }: { children: React.ReactNode }) {
         <ConvexBetterAuthProvider client={convex} authClient={authClient}>
           {session ? children : (
             <div className="flex flex-col gap-4 items-center justify-center h-screen">
-              <div className="text-center space-y-4">
-                <h2 className="text-xl font-semibold">Please sign in to continue</h2>
-              </div>
               <Button onClick={async () => {
                 const { data } = await authClient.signIn.social({
                   provider: "google",
@@ -40,6 +37,10 @@ export function ConvexProvider({ children }: { children: React.ReactNode }) {
               <a className="text-sm text-gray-600" onClick={() => {
                 window.location.reload();
               }}>Refresh</a>
+              <p className="text-xs text-gray-600 text-center">
+                Note: If authentication fails, manually copy and paste the callback URL
+              </p>
+              
             </div>
           )}
         </ConvexBetterAuthProvider>
@@ -47,13 +48,3 @@ export function ConvexProvider({ children }: { children: React.ReactNode }) {
     </QueryProvider>
   );
 } 
-
-export function SignOutButton() {
-  return (
-    <Button onClick={async () => {
-      await authClient.signOut();
-    }}>
-      Sign out
-    </Button>
-  );
-}
