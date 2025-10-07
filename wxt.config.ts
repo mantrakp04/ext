@@ -20,10 +20,10 @@ export default defineConfig({
       'bookmarks',
       'sessions',
       'scripting',
+      'identity',
     ],
     host_permissions: [
-      'http://localhost:*/*',
-      'chrome-extension://*/*',
+      '*'
     ],
   },
 });
