@@ -19,6 +19,7 @@
     "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/react": "^2.0.60",
+    "@convex-dev/agent": "^0.2.11",
     "@convex-dev/better-auth": "^0.8.9",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@radix-ui/react-avatar": "^1.1.10",
