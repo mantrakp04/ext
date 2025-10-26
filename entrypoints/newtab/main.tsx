@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ConvexProvider } from '@/components/convex-provider';
 import '../style.css';
 
 const checkAutoFocus = () => {
@@ -18,7 +19,7 @@ const checkAutoFocus = () => {
   }
   
   // Apply the workaround if enabled (default behavior)
-  if (location.search !== '?focused') {
+  if (location.search !== '?focused' && !location.href.includes('ott')) {
     location.search = '?focused';
     throw new Error('Reloading to shift focus');
   }
@@ -28,6 +29,8 @@ checkAutoFocus();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ConvexProvider forceAuth={false}>
+      <App />
+    </ConvexProvider>
   </React.StrictMode>
 );

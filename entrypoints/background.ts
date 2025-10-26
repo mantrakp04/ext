@@ -1,6 +1,11 @@
 import type { SearchSuggestion } from '@/types';
 
 export default defineBackground(() => {
+  // Configure side panel to open when extension icon is clicked
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error('Error setting panel behavior:', error));
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getTopSites") {
       chrome.topSites.get((sites) => {

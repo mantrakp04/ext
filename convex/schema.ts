@@ -7,5 +7,5 @@ import {
 import { Infer } from "convex/values";
 
 export default defineSchema({
-
+  
 });

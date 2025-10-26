@@ -1,14 +1,14 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
-import { openAPI } from "better-auth/plugins";
 import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth } from "better-auth";
-
-const siteUrl = '*';
+import { jwt } from "better-auth/plugins";
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
+
+const siteUrl = process.env.SITE_URL!;
 
 export const createAuth = (
   ctx: GenericCtx<DataModel>,
@@ -28,9 +28,9 @@ export const createAuth = (
       }
     },
     plugins: [
-      crossDomain({ siteUrl }),
       convex(),
-      openAPI(),
+      crossDomain({ siteUrl }),
+      jwt()
     ],
   });
 };

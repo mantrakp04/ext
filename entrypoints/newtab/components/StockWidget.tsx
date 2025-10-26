@@ -1,17 +1,12 @@
-"use client"
 
 import { useQuery } from "@tanstack/react-query"
 import { TrendingUp, TrendingDown, BarChart3, RefreshCw } from "lucide-react"
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Widget, WidgetContent, WidgetConfig } from './WidgetCard'
 import { Widget as WidgetType } from "./Widgets"
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  Tooltip
-} from 'recharts'
+import debounce from 'debounce'
+import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts'
 
 interface StockData {
   symbol: string
@@ -21,106 +16,79 @@ interface StockData {
   changePercent: number
   volume: number
   marketCap: number
-  chartData: Array<{
-    time: string
-    price: number
-    volume: number
-  }>
+  chartData: Array<{ time: string; price: number; volume: number }>
 }
 
-// Mock data generator for demonstration
-const generateMockChartData = (symbol: string, days: number = 30) => {
-  const data = []
-  const basePrice = Math.random() * 200 + 50 // Random base price between 50-250
-  let currentPrice = basePrice
-  
-  for (let i = days; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    
-    // Simulate realistic stock movement with much higher volatility
-    const volatility = 0.15 // Increased significantly for more visible movement
-    const trend = Math.sin(i * 0.3) * 0.02 // Add some trend
-    const randomChange = (Math.random() - 0.5) * volatility * currentPrice
-    const totalChange = randomChange + (trend * currentPrice)
-    
-    currentPrice += totalChange
-    
-    // Ensure price doesn't go negative but allow more variation
-    currentPrice = Math.max(currentPrice, basePrice * 0.5)
-    
-    data.push({
-      time: date.toISOString().split('T')[0],
-      price: Math.round(currentPrice * 100) / 100,
-      volume: Math.floor(Math.random() * 1000000) + 100000
-    })
-  }
-  
-  return data
-}
+const API_URL = 'https://www.alphavantage.co/query'
+const API_KEY = 'SYTCQBUIU44BX2G4'
 
-const fetchStockData = async (symbol: string): Promise<StockData> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  const basePrice = Math.random() * 200 + 50
-  // Create more dramatic changes for better visualization
-  const changePercent = (Math.random() - 0.5) * 12 // -6% to +6% range for more visible changes
-  const change = (changePercent / 100) * basePrice
-  
+const fetchStock = async (symbol: string): Promise<StockData> => {
+  const fetch3 = (func: string) => fetch(`${API_URL}?function=${func}&symbol=${symbol}&apikey=${API_KEY}`).then(r => r.json())
+
+  const [quote, timeSeries, overview] = await Promise.all([
+    fetch3('GLOBAL_QUOTE'),
+    fetch3('TIME_SERIES_DAILY'),
+    fetch3('OVERVIEW')
+  ])
+
+  const q = quote['Global Quote']
+  if (!q?.['05. price']) throw new Error(`Symbol ${symbol} not found`)
+
+  const ts = timeSeries['Time Series (Daily)']
+  if (!ts) throw new Error(`No data for ${symbol}`)
+
+  const dates = Object.keys(ts).sort().reverse().slice(0, 30).reverse()
+  const chartData = dates.map(d => ({
+    time: d,
+    price: parseFloat(ts[d]['4. close']),
+    volume: parseInt(ts[d]['5. volume'], 10)
+  }))
+
   return {
     symbol,
-    name: symbol === 'AAPL' ? 'Apple Inc.' : 
-          symbol === 'GOOGL' ? 'Alphabet Inc.' : 
-          symbol === 'MSFT' ? 'Microsoft Corporation' :
-          symbol === 'TSLA' ? 'Tesla Inc.' :
-          symbol === 'AMZN' ? 'Amazon.com Inc.' :
-          `${symbol} Corporation`,
-    price: Math.round(basePrice * 100) / 100,
-    change: Math.round(change * 100) / 100,
-    changePercent: Math.round(changePercent * 100) / 100,
-    volume: Math.floor(Math.random() * 10000000) + 1000000,
-    marketCap: Math.floor(Math.random() * 2000000000000) + 100000000000,
-    chartData: generateMockChartData(symbol)
+    name: overview['Name'] || `${symbol} Corp`,
+    price: parseFloat(q['05. price']),
+    change: parseFloat(q['09. change']),
+    changePercent: parseFloat(q['10. change percent'].replace('%', '')),
+    volume: parseInt(q['06. volume'], 10),
+    marketCap: parseInt(overview['MarketCapitalization'] || 0, 10),
+    chartData
   }
 }
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(price)
-}
+const formatPrice = (p: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p)
 
-const formatVolume = (volume: number) => {
-  if (volume >= 1000000000) {
-    return `${(volume / 1000000000).toFixed(1)}B`
-  } else if (volume >= 1000000) {
-    return `${(volume / 1000000).toFixed(1)}M`
-  } else if (volume >= 1000) {
-    return `${(volume / 1000).toFixed(1)}K`
-  }
-  return volume.toString()
+const formatVolume = (v: number) => {
+  if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`
+  if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`
+  return v.toString()
 }
 
 export function StockWidget({ props }: { props: {
-  widget: WidgetType,
-  onRemove: (widgetId: string) => void,
-  onConfigChange: (widgetId: string, config: Record<string, any>) => void
+  widget: WidgetType
+  onRemove: (id: string) => void
+  onConfigChange: (id: string, config: any) => void
 }}) {
-  const { widget, onRemove, onConfigChange } = props;
-  const [symbol, setSymbol] = useState<string>(widget.config.symbol || 'AAPL');
-  
+  const { widget, onRemove, onConfigChange } = props
+  const [symbol, setSymbol] = useState(widget.config.symbol || 'AAPL')
+  const [searchSymbol, setSearchSymbol] = useState(widget.config.symbol || 'AAPL')
+
+  const debouncedSearch = useRef(debounce((s: string) => {
+    if (s.trim()) setSearchSymbol(s.toUpperCase().trim())
+  }, 500)).current
+
+  useEffect(() => {
+    debouncedSearch(symbol)
+  }, [symbol, debouncedSearch])
+
   const { data: stock, isLoading, error, refetch } = useQuery({
-    queryKey: ['stock', symbol],
-    queryFn: () => fetchStockData(symbol),
-    enabled: !!symbol,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-    refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
-    retry: 2,
+    queryKey: ['stock', searchSymbol],
+    queryFn: () => fetchStock(searchSymbol),
+    enabled: searchSymbol.length > 0,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    retry: 1
   })
 
   if (isLoading) {
@@ -137,7 +105,7 @@ export function StockWidget({ props }: { props: {
         
         <WidgetConfig onSubmit={(e) => {
           e.preventDefault();
-          onConfigChange(widget.id, { ...widget.config, symbol });
+          onConfigChange(widget.id, { ...widget.config, symbol: searchSymbol });
         }}>
           <div className="space-y-4">
             <div>
@@ -171,7 +139,9 @@ export function StockWidget({ props }: { props: {
               <BarChart3 className="h-8 w-8 text-muted-foreground mx-auto" strokeWidth={1.5} />
               <div>
                 <p className="text-xs text-foreground font-medium">Stock unavailable</p>
-                <p className="text-xs text-muted-foreground mt-1">Configure symbol in settings</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {error ? `${error.message}` : 'Configure symbol in settings'}
+                </p>
               </div>
             </div>
           </div>
@@ -179,7 +149,7 @@ export function StockWidget({ props }: { props: {
         
         <WidgetConfig onSubmit={(e) => {
           e.preventDefault();
-          onConfigChange(widget.id, { ...widget.config, symbol });
+          onConfigChange(widget.id, { ...widget.config, symbol: searchSymbol });
         }}>
           <div className="space-y-4">
             <div>
@@ -306,7 +276,7 @@ export function StockWidget({ props }: { props: {
 
       <WidgetConfig onSubmit={(e) => {
         e.preventDefault();
-        onConfigChange(widget.id, { ...widget.config, symbol });
+        onConfigChange(widget.id, { ...widget.config, symbol: searchSymbol });
       }}>
         <div className="space-y-4">
           <div>

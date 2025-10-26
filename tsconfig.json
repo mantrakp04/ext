@@ -4,6 +4,7 @@
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
+    "typeRoots": ["./types", "./node_modules/@types"],
     "paths": {
       "@/*": ["./*"]
     }

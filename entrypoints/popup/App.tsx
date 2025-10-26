@@ -6,6 +6,7 @@ function App() {
     
     browser.windows.getCurrent().then((currentWindow) => {
       if (currentWindow.id) {
+        console.log('Opening sidepanel for window:', currentWindow.id);
         browser.sidePanel
           .open({ windowId: currentWindow.id })
           .then(() => {
