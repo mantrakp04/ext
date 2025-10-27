@@ -6,5 +6,3 @@ export const prepArgs = v.object({
   message: v.string(),
 });
 export type PrepArgs = Infer<typeof prepArgs>;
-
-

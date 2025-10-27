@@ -1,8 +1,7 @@
 import { internalUserQuery, userQuery } from "../functions";
-import { getThreadArgs, listThreadsArgs } from "./types";
+import { getThreadArgs, listMessagesArgs, listThreadsArgs } from "./types";
 import * as threadFunctions from "./functions";
 import { f } from "../functions";
-import { api } from "../_generated/api";
 
 export const get = userQuery({
   args: f(getThreadArgs),
@@ -15,6 +14,13 @@ export const list = userQuery({
   args: f(listThreadsArgs),
   handler: async (ctx, args) => {
     return await threadFunctions.listThreads(ctx, args);
+  },
+});
+
+export const listMessages = userQuery({
+  args: f(listMessagesArgs),
+  handler: async (ctx, args) => {
+    return await threadFunctions.listMessages(ctx, args);
   },
 });
 

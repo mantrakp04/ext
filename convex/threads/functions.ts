@@ -1,5 +1,5 @@
 import { QueryCtx, MutationCtx } from "../_generated/server";
-import { GetThreadArgs, GetOrCreateThreadArgs, UpdateThreadArgs, ListThreadsArgs } from "./types";
+import { GetThreadArgs, GetOrCreateThreadArgs, UpdateThreadArgs, ListThreadsArgs, ListMessagesArgs } from "./types";
 import { components } from "../_generated/api";
 import { assert } from "convex-helpers";
 
@@ -78,11 +78,45 @@ export async function updateThread(ctx: MutationCtx, args: UpdateThreadArgs) {
 }
 
 export async function listThreads(ctx: QueryCtx, args: ListThreadsArgs) {
-  const threads = await ctx.db
+  const threadDocsPromise = ctx.db
     .query("threads")
     .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
     .order("desc")
     .paginate(args.paginationOpts);
+
+  const agentThreadsPromise = ctx.runQuery(components.agent.threads.listThreadsByUserId, {
+    userId: args.userId,
+    order: "desc",
+    paginationOpts: args.paginationOpts,
+  });
+
+  const [threadDocs, agentThreads] = await Promise.all([threadDocsPromise, agentThreadsPromise]);
+
+  return {
+    ...threadDocs,
+    page: threadDocs.page.map((doc, index) => {
+      const agentThread = agentThreads.page[index];
+      return {
+        ...doc,
+        ...agentThread,
+      };
+    })
+  }
+}
+
+export async function listMessages(ctx: QueryCtx, args: ListMessagesArgs) {
+  const thread = await getThread(ctx, {
+    userId: args.userId,
+    threadId: args.threadId,
+  });
+  if (!thread) {
+    throw new Error("Thread not found");
+  }
   
-  return threads;
+  const messages = await ctx.runQuery(components.agent.messages.listMessagesByThreadId, {
+    threadId: args.threadId,
+    order: "desc",
+    paginationOpts: args.paginationOpts,
+  });
+  return messages;
 }

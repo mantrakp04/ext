@@ -27,6 +27,13 @@ export const listThreadsArgs = v.object({
 })
 export type ListThreadsArgs = Infer<typeof listThreadsArgs>;
 
+export const listMessagesArgs = v.object({
+  userId: v.string(),
+  threadId: v.string(),
+  paginationOpts: paginationOptsValidator,
+})
+export type ListMessagesArgs = Infer<typeof listMessagesArgs>;
+
 export const searchThreadsArgs = v.object({
   userId: v.string(),
   query: v.string(),
