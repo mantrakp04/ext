@@ -4,7 +4,8 @@ import { httpAction } from "./_generated/server";
 import { streamText, convertToModelMessages, type UIMessage } from 'ai';
 import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
 import { Agent } from "@convex-dev/agent";
-import { components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
+import { openai } from "@ai-sdk/openai";
 
 const http = httpRouter();
 
@@ -38,92 +39,68 @@ const createOptionsHandler = () => {
 };
 
 http.route({
-  path: '/proxy/llm',
+  path: '/agent',
   method: 'OPTIONS',
   handler: createOptionsHandler(),
 })
 
 http.route({
-  path: '/proxy/llm',
+  path: '/agent',
   method: 'POST',
   handler: httpAction(async (ctx, request) => {
-    // const user = await ctx.auth.getUserIdentity();
+    const body : {
+      threadId: string;
+      model: string | undefined,
+      message: UIMessage;
+    } = await request.json();
 
-    // if (!user) {
-    //   return new Response(
-    //     JSON.stringify({ error: 'Unauthorized' }),
-    //     { status: 401 }
-    //   );
-    // }
+    const { promptMessageId } = await ctx.runMutation(internal.threads.agent.mutations.prepInternal, {
+      userId: "123",
+      threadId: body.threadId,
+      message: JSON.stringify(body.message),
+    });
 
-    const body = await request.json();
-    const messages = body?.messages as UIMessage[];
-
-    const openRouterApiKey = process.env.OPENAI_API_KEY;
-    if (!openRouterApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'OpenRouter API key not configured' }),
-        { status: 500 }
-      );
-    }
-
-    try {
-      const openrouter = createOpenRouter({
-        apiKey: openRouterApiKey,
-      });
-      const modelId = 'openai/gpt-4o-mini';
-      const model = openrouter(modelId);
-
-      if (!Array.isArray(messages)) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid request: messages missing' }),
-          { status: 400 }
-        );
+    const agent = new Agent(components.agent, {
+      name: "Barrel Agent",
+      languageModel: openrouter("openai/gpt-4o-mini"),
+      textEmbeddingModel: openai.embedding("text-embedding-3-small"),
+      instructions: "You are a helpful assistant.",
+      contextOptions: {
+        excludeToolMessages: false,
+        recentMessages: 100,
+        searchOptions: {
+          limit: 10,
+          vectorSearch: true,
+          messageRange: {
+            before: 2,
+            after: 1,
+          }
+        },
+        searchOtherThreads: true,
+      },
+      storageOptions: {
+        saveMessages: "all"
+      },
+      tools: {
+      },
+      maxSteps: 50,
+    });
+    
+    const stream = await agent.streamText(ctx,
+      {
+        userId: "123",
+        threadId: "123"
+      },
+      {
+        promptMessageId: promptMessageId,
+      },
+      {
+        saveStreamDeltas: false
       }
+    )
 
-      // Stream using AI SDK and return UI-compatible stream
-      const result = streamText({
-        model,
-        messages: convertToModelMessages(body.messages),
-      });
-
-      const streamResponse = await result.toUIMessageStreamResponse();
-
-      const resultHeaders = new Headers(streamResponse.headers);
-      resultHeaders.set('Access-Control-Allow-Origin', request.headers.get('Origin') || '*');
-      resultHeaders.set('Access-Control-Allow-Credentials', 'true');
-      resultHeaders.append('Vary', 'Origin');
-
-      return new Response(streamResponse.body, {
-        status: streamResponse.status,
-        statusText: streamResponse.statusText,
-        headers: resultHeaders,
-      });
-    } catch (error) {
-      return new Response(
-        JSON.stringify({ error: `Failed to forward request: ${error}` }),
-        { status: 502 }
-      );
-    }
+    return stream.toUIMessageStreamResponse()
   }),
 })
 
-// http.route({
-//   path: '/agent',
-//   method: 'POST',
-//   handler: httpAction(async (ctx, request) => {
-//     const body = await request.json();
-
-//     const agent = new Agent(components.agent, {
-//       name: "Barrel Agent",
-//       languageModel: openrouter("openai/gpt-4o-mini"),
-//       instructions: "You are a helpful assistant.",
-//       tools: {
-//       },
-//       maxSteps: 50,
-//     });
-
-//     return new Response(JSON.stringify(result), { status: 200 });
-//   }),
-// })
 export default http;

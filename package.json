@@ -5,7 +5,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wxt",
+    "dev": "wxt & bunx convex dev",
     "dcvx": "bunx convex dev",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
@@ -20,7 +20,7 @@
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/react": "^2.0.60",
     "@convex-dev/agent": "^0.2.11",
-    "@convex-dev/better-auth": "^0.8.9",
+    "@convex-dev/better-auth": "^0.9.6",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -42,7 +42,7 @@
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-query-persist-client": "^5.90.2",
     "ai": "^5.0.60",
-    "better-auth": "1.3.8",
+    "better-auth": "^1.3.32",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.27.4",
@@ -80,5 +80,6 @@
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.2",
     "wxt": "^0.20.6"
-  }
+  },
+  "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }
