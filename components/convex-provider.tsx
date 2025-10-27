@@ -1,25 +1,45 @@
 import React from "react";
 import { ThemeProvider } from '@/components/theme-provider';
-import { QueryProvider } from '@/components/query-provider';
 import { ConvexReactClient } from "convex/react";
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { AuthClient } from "@convex-dev/better-auth/react";
+import { ConvexQueryClient } from "@convex-dev/react-query";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { experimental_createQueryPersister } from '@tanstack/query-persist-client-core';
 
 export function ConvexProvider({ children, forceAuth = true }: { children: React.ReactNode; forceAuth?: boolean }) {
-  const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string, {
-    expectAuth: true,
+  const persister = experimental_createQueryPersister({
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
   });
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 60 * 24, // 24 hours
+        retry: 2,
+        refetchOnWindowFocus: false,
+        persister: persister.persisterFn,
+      },
+    },
+  });
+  
+  const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string, {
+    expectAuth: forceAuth,
+  });
+  
+  const convexQueryClient = new ConvexQueryClient(convex);
+  convexQueryClient.connect(queryClient);
 
   const providers = (
-    <QueryProvider>
-      <ThemeProvider>
-        <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+    <ThemeProvider>
+      <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+        <QueryClientProvider client={queryClient}>
           {children}
-        </ConvexBetterAuthProvider>
-      </ThemeProvider>
-    </QueryProvider>
+        </QueryClientProvider>
+      </ConvexBetterAuthProvider>
+    </ThemeProvider>
   );
 
   if (!forceAuth) {

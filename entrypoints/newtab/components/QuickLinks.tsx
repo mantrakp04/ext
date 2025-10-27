@@ -18,7 +18,7 @@ if (!settings.showQuickLinks) return null;
 
   return (
     <div className="w-full">
-      <div className="grid gap-2 grid-cols-4">
+      <div className="grid gap-1 grid-cols-4">
         {settings.quickLinks.map((link) => (
           <Button
             key={link.id}

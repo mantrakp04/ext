@@ -21,28 +21,30 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { LogOut } from 'lucide-react';
+import { LogOut, Github, Loader2 } from 'lucide-react';
 
 function NewTabApp() {
   const [settings] = useAtom(settingsAtom);
 
   const { data: session, isPending } = authClient.useSession();
 
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
+  // if (isPending) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <BackgroundWrapper>
-      {/* Theme Toggle and Settings */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2 items-center">
+      <div className="absolute top-4 right-4 z-10 flex gap-1 items-center">
+        <Button variant="ghost" size="icon" onClick={() => window.open('https://github.com/mantrakp04/ext', '_blank')}>
+          <Github />
+        </Button>
         <ModeToggle />
         <SettingsDialog />
         {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-full">
-                <Avatar className="border-2 border-border cursor-pointer hover:opacity-80 transition-opacity">
+              <Button variant="ghost" size="icon">
+                <Avatar>
                   <AvatarImage 
                     src={session.user.image || undefined} 
                     alt={session.user.name || 'User'}
@@ -52,7 +54,7 @@ function NewTabApp() {
                     {session.user.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
                   </AvatarFallback>
                 </Avatar>
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
@@ -79,7 +81,7 @@ function NewTabApp() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
+        ) : !isPending ? (
           <Button onClick={async () => {
             await authClient.signIn.social({
               provider: "google",
@@ -88,7 +90,7 @@ function NewTabApp() {
           }} variant={"outline"}>
             Sign in
           </Button>
-        )}
+        ) : <Button variant="ghost" size="icon"><Loader2 className="animate-spin" /></Button>}
       </div>
 
       {/* Main Content Container */}
@@ -98,7 +100,7 @@ function NewTabApp() {
           backdropFilter: settings.backgroundBlur > 0 ? `blur(${settings.backgroundBlur}px)` : 'none',
         }}
       >
-        <div className="flex flex-col h-full items-center justify-center gap-2 max-w-2xl mx-auto">
+        <div className="flex flex-col h-full items-center justify-center gap-1 max-w-2xl mx-auto">
           <SearchBar />
           <Widgets />
           <TopSites />

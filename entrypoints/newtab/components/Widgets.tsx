@@ -95,7 +95,7 @@ export function Widgets() {
   
   return (
     <div 
-      className="grid gap-2 grid-cols-4 w-full"
+      className="grid gap-1 grid-cols-4 w-full"
     >
       {displayWidgets.map((widget) => (
         <div

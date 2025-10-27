@@ -4,14 +4,21 @@ import { components } from "../_generated/api";
 import { assert } from "convex-helpers";
 
 export async function getThread(ctx: QueryCtx, args: GetThreadArgs) {
-  const thread = await ctx.db
+  const threadDoc = await ctx.db
     .query("threads")
     .withIndex("by_user_id_and_thread_id", (q) =>
       q.eq("userId", args.userId).eq("threadId", args.threadId)
     )
     .first();
   
-  return thread;
+  const thread = await ctx.runQuery(components.agent.threads.getThread, {
+    threadId: args.threadId,
+  });
+  
+  return {
+    ...thread,
+    ...threadDoc,
+  };
 }
 
 export async function getOrCreateThread(ctx: MutationCtx, args: GetOrCreateThreadArgs) {

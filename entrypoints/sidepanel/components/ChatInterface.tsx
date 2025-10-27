@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Trash2 } from 'lucide-react';
+import { ChevronUp, EllipsisVertical, Plus, Sparkles, StopCircle, Trash2, Paperclip, Camera, Mic } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import type { UIMessage } from 'ai';
@@ -23,6 +23,10 @@ import {
 } from '@/components/ai-elements/prompt-input';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from '@tanstack/react-query';
+import { convexQuery } from '@convex-dev/react-query';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function ChatInterface() {
   return (
@@ -32,23 +36,33 @@ export function ChatInterface() {
 
 function ChatInterfaceContent() {
   const baseURL = import.meta.env.VITE_CONVEX_SITE_URL || 'http://localhost:3000';
+  const [chatId, setChatId] = useState<string>('new');
   const [input, setInput] = useState('');
+  const [isMultiline, setIsMultiline] = useState(false);
   
+  const { data: threads } = useQuery(convexQuery(api.threads.queries.list, {
+    paginationOpts: {
+      numItems: 5,
+      cursor: null,
+    },
+  }));
+  
+  const { data: thread } = useQuery(convexQuery(api.threads.queries.get, 
+    chatId !== 'new' ? {
+      threadId: chatId,
+    } : 'skip'
+  ));
 
   const { messages, sendMessage, status, stop } = useChat({
     transport: new DefaultChatTransport({
       api: `${baseURL}/proxy/llm`,
       async fetch(input, init) {
         const { session } = await authClient.getSessionData();
-        const cookie = await authClient.getCookie();
-
-        console.log(cookie, session);
         const response = await fetch(input, {
           ...init,
           headers: {
             ...init?.headers,
             Authorization: `Bearer ${session.token}`,
-            Cookie: cookie
           }
         });
         return response;
@@ -56,11 +70,6 @@ function ChatInterfaceContent() {
     }),
   });
 
-  const handleClearChat = () => {
-    window.location.reload();
-  };
-
-  // Helper function to extract text from message parts
   const getMessageText = (message: UIMessage) => {
     return message.parts
       ?.map(part => (part.type === 'text' ? part.text : ''))
@@ -70,21 +79,41 @@ function ChatInterfaceContent() {
   return (
     <div className="flex flex-col h-full w-full bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-blue-500" />
-          <h1 className="text-lg font-semibold">AI Assistant</h1>
-        </div>
-        {messages.length > 0 && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClearChat}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+      <div className="flex items-center justify-between p-2 border-b">
+        {chatId === 'new' ? (
+          <div className="text-sm text-muted-foreground p-2">
+            New chat
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground p-2">
+            {thread?.title}
+          </div>
         )}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setChatId('new')}>
+            <Plus />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <EllipsisVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {
+                threads && threads.page.length > 0 ? threads.page.map((thread) => (
+                  <DropdownMenuItem key={thread._id}>
+                    {thread.title}
+                  </DropdownMenuItem>
+                )) : (
+                  <div className="text-sm text-muted-foreground p-2">
+                    No threads found
+                  </div>
+                )
+              }
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Messages Container */}
@@ -99,27 +128,14 @@ function ChatInterfaceContent() {
           ) : (
             messages.map((message: UIMessage) => (
               <Message key={message.id} from={message.role}>
-                <MessageAvatar
-                  src={message.role === 'user' 
-                    ? 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'
-                    : 'https://api.dicebear.com/7.x/avataaars/svg?seed=assistant'
-                  }
-                  name={message.role === 'user' ? 'You' : 'AI'}
-                />
                 <MessageContent>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    {getMessageText(message)}
-                  </div>
+                  {getMessageText(message)}
                 </MessageContent>
               </Message>
             ))
           )}
           {(status === 'submitted' || status === 'streaming') && messages[messages.length - 1]?.role !== 'assistant' && (
             <Message from="assistant">
-              <MessageAvatar
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=assistant"
-                name="AI"
-              />
               <MessageContent>
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
@@ -135,43 +151,64 @@ function ChatInterfaceContent() {
         <ConversationScrollButton />
       </Conversation>
 
-      {/* Input Form */}
-      <PromptInput
-        onSubmit={(message) => {
-          if (message.text) {
-            sendMessage({ text: message.text });
-          }
-        }}
-        className="border-t rounded-none"
-      >
-        <PromptInputBody>
-          <PromptInputTextarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={status !== 'ready'}
-          />
-        </PromptInputBody>
-        <PromptInputToolbar>
-          <div />
-          <div className="flex items-center gap-1">
-            {(status === 'submitted' || status === 'streaming') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={stop}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Stop
-              </Button>
-            )}
-            <PromptInputSubmit
-              status={status === 'ready' ? undefined : status}
-              disabled={status !== 'ready' || !input.trim()}
+      {/* Input Form - Updated Layout */}
+      <div className="p-4">
+        <PromptInput
+          onSubmit={(message) => {
+            if (message.text) {
+              sendMessage({ text: message.text });
+            }
+          }}
+          className={`flex ${isMultiline ? 'flex-col' : 'flex-row'}`}
+        >
+          <div className='w-full'>
+            <PromptInputTextarea
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setIsMultiline(e.target.value.includes('\n'));
+              }}
+              placeholder="Ask anything…"
+              className={`min-h-8`}
             />
           </div>
-        </PromptInputToolbar>
-      </PromptInput>
+
+          <div className={`${isMultiline ? '' : ''}`}>
+            <div className='flex items-center gap-2'>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+              >
+                <Paperclip />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+              >
+                <Camera />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+              >
+                <Mic />
+              </Button>
+            </div>
+
+            {/* Right side - Submit button */}
+            <div>
+              <PromptInputSubmit
+                size="icon"
+              >
+                <ChevronUp className='w-4 h-4' />
+              </PromptInputSubmit>
+            </div>
+          </div>
+        </PromptInput>
+      </div>
     </div>
   );
 }

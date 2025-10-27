@@ -30,7 +30,7 @@ export function TopSites() {
 
   return (
     <div className="w-full">
-      <div className="grid gap-2 grid-cols-4">
+      <div className="grid gap-1 grid-cols-4">
         {topSites.map((site) => (
           <Button
             key={site.id}
