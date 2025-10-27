@@ -8,8 +8,18 @@ import { getOrCreateThread } from "../functions";
 export async function prep(
   ctx: MutationCtx,
   args: PrepArgs
-): Promise<{ promptMessageId: string }> {
-  // Parse incoming UIMessage
+): Promise<{ promptMessageId: string, userId: string }> {
+  const session = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+    model: "session",
+    where: [
+      { field: "token", value: args.sessionToken, operator: "eq" }
+    ],
+  });
+  if (!session || new Date(session.expiresAt) < new Date()) {
+    throw new Error('Unauthorized: Session expired or not found');
+  }
+
+  const userId = session.userId;
   const uiMessage = JSON.parse(args.message) as UIMessage;
   const coreMessage = convertToModelMessages([uiMessage])[0];
 
@@ -23,11 +33,12 @@ export async function prep(
   const promptMessage = added.messages[0];
 
   await getOrCreateThread(ctx, {
-    userId: args.userId,
+    userId: userId,
     threadId: args.threadId,
   });
 
   return {
     promptMessageId: promptMessage._id,
+    userId
   };
 }

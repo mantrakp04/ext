@@ -39,6 +39,71 @@ const createOptionsHandler = () => {
 };
 
 http.route({
+  path: '/proxy/llm',
+  method: 'OPTIONS',
+  handler: createOptionsHandler(),
+})
+
+http.route({
+  path: '/proxy/llm',
+  method: 'POST',
+  handler: httpAction(async (ctx, request) => {
+    const sessionToken = request.headers.get('Authorization')?.split(' ')[1] || '';
+    const session = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+      model: "session",
+      where: [
+        { field: "token", value: sessionToken || '', operator: "eq" }
+      ],
+    });
+    if (!session || new Date(session.expiresAt) < new Date()) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Session expired or not found' }),
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const messages = body?.messages as UIMessage[];
+
+    try {
+      const modelId = 'openai/gpt-4o-mini';
+      const model = openrouter(modelId);
+
+      if (!Array.isArray(messages)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid request: messages missing' }),
+          { status: 400 }
+        );
+      }
+
+      // Stream using AI SDK and return UI-compatible stream
+      const result = streamText({
+        model,
+        messages: convertToModelMessages(body.messages),
+      });
+
+      const streamResponse = await result.toUIMessageStreamResponse();
+
+      const resultHeaders = new Headers(streamResponse.headers);
+      resultHeaders.set('Access-Control-Allow-Origin', request.headers.get('Origin') || '*');
+      resultHeaders.set('Access-Control-Allow-Credentials', 'true');
+      resultHeaders.append('Vary', 'Origin');
+
+      return new Response(streamResponse.body, {
+        status: streamResponse.status,
+        statusText: streamResponse.statusText,
+        headers: resultHeaders,
+      });
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: `Failed to forward request: ${error}` }),
+        { status: 502 }
+      );
+    }
+  }),
+})
+
+http.route({
   path: '/agent',
   method: 'OPTIONS',
   handler: createOptionsHandler(),
@@ -48,14 +113,16 @@ http.route({
   path: '/agent',
   method: 'POST',
   handler: httpAction(async (ctx, request) => {
+    const sessionToken = request.headers.get('Authorization')?.split(' ')[1] || '';
+
     const body : {
       threadId: string;
       model: string | undefined,
       message: UIMessage;
     } = await request.json();
 
-    const { promptMessageId } = await ctx.runMutation(internal.threads.agent.mutations.prepInternal, {
-      userId: "123",
+    const { promptMessageId, userId } = await ctx.runMutation(internal.threads.agent.mutations.prepInternal, {
+      sessionToken: sessionToken || '',
       threadId: body.threadId,
       message: JSON.stringify(body.message),
     });
@@ -88,8 +155,8 @@ http.route({
     
     const stream = await agent.streamText(ctx,
       {
-        userId: "123",
-        threadId: "123"
+        userId: userId,
+        threadId: body.threadId
       },
       {
         promptMessageId: promptMessageId,

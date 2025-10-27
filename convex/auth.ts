@@ -4,7 +4,7 @@ import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth } from "better-auth";
-import { jwt } from "better-auth/plugins";
+import { v } from "convex/values";
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
@@ -30,7 +30,6 @@ export const createAuth = (
     plugins: [
       convex(),
       crossDomain({ siteUrl }),
-      jwt()
     ],
   });
 };

@@ -39,15 +39,16 @@ function ChatInterfaceContent() {
     transport: new DefaultChatTransport({
       api: `${baseURL}/proxy/llm`,
       async fetch(input, init) {
-        // const { data } = await authClient.convex.
-        // console.log(data)
-        // const token = await authClient.convex['.wellKnown'].openidConfiguration.
-        // console.log(token)
+        const { session } = await authClient.getSessionData();
+        const cookie = await authClient.getCookie();
+
+        console.log(cookie, session);
         const response = await fetch(input, {
           ...init,
           headers: {
             ...init?.headers,
-            // Authorization: `Bearer ${token.token}`
+            Authorization: `Bearer ${session.token}`,
+            Cookie: cookie
           }
         });
         return response;
